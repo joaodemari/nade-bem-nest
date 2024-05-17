@@ -1,0 +1,33 @@
+import { SwimmerEntity } from 'src/domain/entities/swimmer-entity';
+
+export class SwimmerPresenter {
+  static toHTTP(swimmer: SwimmerEntity | SwimmerEntity[] | null) {
+    if (!swimmer) return null;
+    if (swimmer instanceof Array) {
+      return swimmer.map((swimmer) => {
+        return {
+          id: swimmer.id.toString(),
+          memberNumber: swimmer.memberNumber,
+          name: swimmer.name,
+          photoUrl: swimmer.photoUrl,
+          lastAccess: swimmer.lastAccess,
+          actualLevel: swimmer.actualLevelName,
+          teacherNumber: swimmer.teacherNumber,
+          lastReport: swimmer.lastReport,
+          lastReportId: swimmer.lastReportId,
+        };
+      });
+    }
+    return {
+      id: swimmer.id.toString(),
+      memberNumber: swimmer.memberNumber,
+      name: swimmer.name,
+      photoUrl: swimmer.photoUrl,
+      lastAccess: swimmer.lastAccess,
+      actualLevel: swimmer.actualLevelName,
+      teacherNumber: swimmer.teacherNumber,
+      lastReport: swimmer.lastReport,
+      lastReportId: swimmer.lastReportId,
+    };
+  }
+}

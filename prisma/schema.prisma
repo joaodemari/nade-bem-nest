@@ -1,0 +1,138 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Branch {
+  id           String        @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  teachers     Teacher[]
+  swimmers     Swimmer[]
+  levels       Level[]
+  reports      Report[]
+  responsibles Responsible[]
+  periods      Period[]
+}
+
+model Teacher {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  teacherNumber Int       @unique
+  name          String
+  email         String    @unique
+  photoUrl      String?
+  password      String?
+  resetToken    String?   @unique
+  Report        Report[]
+  swimmers      Swimmer[]
+  Branch        Branch?   @relation(fields: [branchId], references: [id])
+  branchId      String?   @db.ObjectId
+}
+
+model Period {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  startDate DateTime
+  endDate   DateTime
+  report    Report[]
+  Branch    Branch?  @relation(fields: [branchId], references: [id])
+  branchId  String?  @db.ObjectId
+}
+
+model Responsible {
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  email      String    @unique
+  password   String?
+  resetToken String?   @unique
+  swimmers   Swimmer[]
+  Branch     Branch?   @relation(fields: [branchId], references: [id])
+  branchId   String?   @db.ObjectId
+}
+
+model Swimmer {
+  id           String @id @default(auto()) @map("_id") @db.ObjectId
+  memberNumber Int    @unique
+
+  actualLevel     Level  @relation(fields: [actualLevelName], references: [name])
+  actualLevelName String
+
+  name       String
+  photoUrl   String?
+  lastAccess DateTime
+
+  Report       Report[]
+  lastReport   DateTime?
+  lastReportId String?   @db.ObjectId
+
+  Teacher       Teacher? @relation(fields: [teacherNumber], references: [teacherNumber])
+  teacherNumber Int?
+
+  Responsible   Responsible? @relation(fields: [responsibleId], references: [id])
+  responsibleId String?      @db.ObjectId
+  Branch        Branch?      @relation(fields: [branchId], references: [id])
+  branchId      String?      @db.ObjectId
+}
+
+model Report {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  createdAt DateTime @default(now())
+  approved  Boolean
+
+  observation String
+
+  isAvailable Boolean @default(false)
+
+  level          Level            @relation(fields: [levelId], references: [id])
+  levelId        String           @db.ObjectId
+  ReportAndSteps ReportAndSteps[]
+
+  swimmer   Swimmer? @relation(fields: [idSwimmer], references: [id])
+  idSwimmer String?  @db.ObjectId
+  teacher   Teacher? @relation(fields: [idTeacher], references: [id])
+  idTeacher String?  @db.ObjectId
+
+  Period   Period? @relation(fields: [periodId], references: [id])
+  periodId String? @db.ObjectId
+  Branch   Branch? @relation(fields: [branchId], references: [id])
+  branchId String? @db.ObjectId
+}
+
+model ReportAndSteps {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  report   Report @relation(fields: [reportId], references: [id])
+  step     Step   @relation(fields: [stepId], references: [id])
+  reportId String @db.ObjectId
+  stepId   String @db.ObjectId
+}
+
+model Level {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  name        String    @unique
+  levelNumber Int       @unique
+  areas       Area[]
+  Report      Report[]
+  swimmers    Swimmer[]
+  Branch      Branch?   @relation(fields: [branchId], references: [id])
+  branchId    String?   @db.ObjectId
+}
+
+model Area {
+  id       String  @id @default(auto()) @map("_id") @db.ObjectId
+  title    String
+  steps    Step[]
+  Level    Level?  @relation(fields: [levelId], references: [id])
+  levelId  String? @db.ObjectId
+}
+
+model Step {
+  id             String           @id @default(auto()) @map("_id") @db.ObjectId
+  description    String
+  points         Int
+  Area           Area             @relation(fields: [areaId], references: [id])
+  areaId         String           @db.ObjectId
+  ReportAndSteps ReportAndSteps[]
+}
