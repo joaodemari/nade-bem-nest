@@ -28,42 +28,14 @@ export class RefreshSwimmersConsumer {
 
   @Process()
   async handle(job: Job<{ teacherNumber: number }>) {
-    const swimmersInEvo: SwimmerEvo[] = await this.fetchSwimmers(
-      job.data.teacherNumber,
-    );
-    await this.swimmersRepository.upsertManyFromEvo(swimmersInEvo);
-    await this.swimmersRepository.deleteDuplicates();
-  }
+    const swimmersInEvo: SwimmerEvo[] = [];
+    const teacherNumber = job.data.teacherNumber;
 
-  @OnQueueCompleted()
-  onCompleted(job: Job) {
-    this.logger.log(
-      `Refreshing swimmers of teacher has been completed: JobID ${job.id}`,
-    );
-  }
-
-  @OnQueueError()
-  onError(job: Job, error: Error) {
-    this.logger.error(
-      `Refreshing swimmers of teacher has been failed: JobID ${job.id}`,
-      error,
-    );
-  }
-
-  ajustAnoNasc(data: string): number {
-    const ano = data?.split('-')[0];
-    return +ano;
-  }
-
-  private fetchSwimmers = async (
-    teacherNumber: number,
-  ): Promise<SwimmerEvo[]> => {
     const url = 'https://evo-integracao.w12app.com.br/api/v1/members';
     const evo_cred = this.env.get('EVO_CRED');
     const credentials = btoa(evo_cred);
     let hasEnded = false;
     let skip = 0;
-    const swimmersInEvo: SwimmerEvo[] = [];
     while (!hasEnded) {
       const response = await axios.get(`${url}`, {
         params: {
@@ -100,6 +72,27 @@ export class RefreshSwimmersConsumer {
       }
     }
 
-    return swimmersInEvo;
-  };
+    await this.swimmersRepository.upsertManyFromEvo(swimmersInEvo);
+    await this.swimmersRepository.deleteDuplicates();
+  }
+
+  @OnQueueCompleted()
+  onCompleted(job: Job) {
+    this.logger.log(
+      `Refreshing swimmers of teacher has been completed: JobID ${job.id}`,
+    );
+  }
+
+  @OnQueueError()
+  onError(job: Job, error: Error) {
+    this.logger.error(
+      `Refreshing swimmers of teacher has been failed: JobID ${job.id}`,
+      error,
+    );
+  }
+
+  ajustAnoNasc(data: string): number {
+    const ano = data?.split('-')[0];
+    return +ano;
+  }
 }
