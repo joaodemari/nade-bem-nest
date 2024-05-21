@@ -3,7 +3,9 @@ import { right } from '../../../../core/types/either';
 import { LevelsRepository } from '../../../../domain/repositories/levels-repository';
 import { ReportsRepository } from '../../../../domain/repositories/reports-repository';
 import { getLevelTemplateResponse } from '../../../../infra/http/dtos/reports/templates/getLevelTemplate.dto';
+import { Injectable } from '@nestjs/common';
 
+@Injectable()
 export class GetRepTemplBySwimmerService {
   constructor(
     private readonly levelsRepository: LevelsRepository,
@@ -27,7 +29,7 @@ export class GetRepTemplBySwimmerService {
         observation: '',
         areas: reportLevel.areas.map((area) => ({
           ...area,
-          lastReportStepId: '',
+          lastReportStepId: area.steps[0].id,
           steps: area.steps,
         })),
       };

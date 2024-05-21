@@ -49,7 +49,7 @@ export class AuthenticationService {
       email: teacher.email,
     });
 
-    return right({
+    const response = {
       success: true,
       metadata: {
         token: token,
@@ -58,7 +58,11 @@ export class AuthenticationService {
         memberNumber: teacher.teacherNumber,
         role: 'teacher',
       },
-    });
+    };
+
+    console.log(response);
+
+    return right(response);
   }
 
   // async handle({ email, password }: LoginDTO): Promise<LoginResponseDto> {

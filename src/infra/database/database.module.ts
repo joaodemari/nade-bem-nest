@@ -8,6 +8,8 @@ import PeriodsRepository from '../../domain/repositories/periods-repository';
 import { PrismaPeriodsRepository } from './prisma/repositories/prisma-periods-repository';
 import { ReportsRepository } from '../../domain/repositories/reports-repository';
 import { PrismaReportsRepository } from './prisma/repositories/prisma-reports-repository';
+import { LevelsRepository } from '../../domain/repositories/levels-repository';
+import { PrismaLevelsRepository } from './prisma/repositories/prisma-levels-repository';
 
 @Module({
   providers: [
@@ -28,6 +30,10 @@ import { PrismaReportsRepository } from './prisma/repositories/prisma-reports-re
       provide: ReportsRepository,
       useClass: PrismaReportsRepository,
     },
+    {
+      provide: LevelsRepository,
+      useClass: PrismaLevelsRepository,
+    },
   ],
   exports: [
     PrismaService,
@@ -35,6 +41,7 @@ import { PrismaReportsRepository } from './prisma/repositories/prisma-reports-re
     TeachersRepository,
     PeriodsRepository,
     ReportsRepository,
+    LevelsRepository,
   ],
 })
 export class DatabaseModule {}

@@ -3,7 +3,9 @@ import { PrismaBaseRepository } from './prisma-base-repository';
 import { ReportEntity } from '../../../../domain/entities/ReportEntity';
 import { PrismaService } from '../prisma.service';
 import { ReportsRepository } from '../../../../domain/repositories/reports-repository';
+import { Injectable } from '@nestjs/common';
 
+@Injectable()
 export class PrismaReportsRepository
   extends PrismaBaseRepository<ReportEntity>
   implements ReportsRepository

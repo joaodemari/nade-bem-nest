@@ -1,8 +1,10 @@
+import { Injectable } from '@nestjs/common';
 import { NoCompleteInformation } from '../../../../core/errors/no-complete-information-error';
 import { left, right } from '../../../../core/types/either';
 import { LevelsRepository } from '../../../../domain/repositories/levels-repository';
 import { getLevelTemplateResponse } from '../../../../infra/http/dtos/reports/templates/getLevelTemplate.dto';
 
+@Injectable()
 export class GetLevelTempleteService {
   constructor(private readonly levelRepository: LevelsRepository) {}
 

@@ -1,6 +1,8 @@
+import { Injectable } from '@nestjs/common';
 import { LevelsRepository } from '../../../../domain/repositories/levels-repository';
 import { PrismaService } from '../prisma.service';
 
+@Injectable()
 export class PrismaLevelsRepository extends LevelsRepository {
   constructor(private readonly prisma: PrismaService) {
     super();

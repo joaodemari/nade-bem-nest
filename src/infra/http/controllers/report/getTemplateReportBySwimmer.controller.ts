@@ -6,22 +6,31 @@ import {
   Param,
 } from '@nestjs/common';
 import { GetRepTemplBySwimmerService } from '../../../../domain/services/reports/templates/getRepTemplBySwimmer.service';
+import { Role } from '../../../../domain/enums/role.enum';
+import { Roles } from '../../decorators/role.decorator';
 
-@Controller('report-template')
+@Roles(Role.teacher)
+@Controller('report-template/last-report')
 export class GetTemplateReportBySwimmerController {
   constructor(
     private readonly getTemplateReportBySwimmer: GetRepTemplBySwimmerService,
   ) {}
 
-  @Get('/swimmer/:swimmerId')
-  async handle(@Param('swimmerId') swimmerId: string) {
+  @Get(':id')
+  async handle(@Param('id') id: string) {
     try {
-      const report = await this.getTemplateReportBySwimmer.execute(swimmerId);
-      if (!report) {
+      const reportId = id == 'no-report' ? null : id;
+      const report = await this.getTemplateReportBySwimmer.execute(reportId);
+
+      if (report.isLeft()) {
+        throw new BadRequestException(report.value);
+      }
+      if (!report.value) {
         throw new BadRequestException('Report not found');
       }
-      return report;
+      return report.value;
     } catch (error) {
+      console.log(error);
       throw new InternalServerErrorException(
         'Error getting report template by swimmer',
       );
