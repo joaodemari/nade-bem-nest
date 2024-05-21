@@ -92,6 +92,7 @@ export class RefreshSwimmersConsumer {
       );
 
       if (data.length !== 0) {
+        console.log('Está funcionando?');
         swimmersInEvo.push(...swimmersInRequest);
         skip += 50;
       } else {
