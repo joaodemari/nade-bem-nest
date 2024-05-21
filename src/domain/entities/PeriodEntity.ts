@@ -1,4 +1,4 @@
-import { BaseEntity } from 'src/core/generic/base-entity';
+import { BaseEntity } from '../../core/generic/base-entity';
 
 export interface PeriodInterface {
   name: string;

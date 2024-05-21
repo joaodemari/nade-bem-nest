@@ -5,10 +5,13 @@ import {
   Post,
   UnauthorizedException,
 } from '@nestjs/common';
-import { ActionNotAllowed } from 'src/core/errors/action-not-allowed-error';
+import { ActionNotAllowed } from '../../../../core/errors/action-not-allowed-error';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { AuthenticationService } from 'src/domain/services/authentication.service';
-import { AuthDTO, AuthResponseDto } from 'src/infra/http/dtos/auth/login.dto';
+import { AuthenticationService } from '../../../../domain/services/authentication.service';
+import {
+  AuthDTO,
+  AuthResponseDto,
+} from '../../../../infra/http/dtos/auth/login.dto';
 import { IsPublic } from '../../decorators/is-public.decorator';
 
 @IsPublic()

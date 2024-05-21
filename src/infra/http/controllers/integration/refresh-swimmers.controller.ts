@@ -3,7 +3,7 @@ import { REFRESH_QUEUE } from '../../constants/queue.constants';
 import { Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
 import { Roles } from '../../decorators/role.decorator';
-import { Role } from 'src/domain/enums/role.enum';
+import { Role } from '../../../../domain/enums/role.enum';
 import { CurrentUser } from '../../decorators/current-user.decorator';
 import { AuthPayloadDTO } from '../../dtos/auth/login.dto';
 

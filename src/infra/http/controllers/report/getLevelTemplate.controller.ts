@@ -1,5 +1,5 @@
 import { Controller, Get, Param } from '@nestjs/common';
-import { GetLevelTempleteService } from 'src/domain/services/reports/templates/getLevelTemplate.service';
+import { GetLevelTempleteService } from '../../../../domain/services/reports/templates/getLevelTemplate.service';
 
 @Controller('report-template')
 export class GetTemplateReportByLevelController {

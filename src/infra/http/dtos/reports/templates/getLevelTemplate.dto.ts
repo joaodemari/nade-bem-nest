@@ -1,6 +1,6 @@
 import { Area, Level, Step } from '@prisma/client';
-import { NoCompleteInformation } from 'src/core/errors/no-complete-information-error';
-import { Either } from 'src/core/types/either';
+import { NoCompleteInformation } from '../../../../../core/errors/no-complete-information-error';
+import { Either } from '../../../../../core/types/either';
 
 export type getLevelTemplateResponse = Either<
   NoCompleteInformation,

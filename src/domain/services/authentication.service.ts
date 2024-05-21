@@ -1,16 +1,16 @@
 import {
   AuthResponseDto,
   authSchema,
-} from 'src/infra/http/dtos/auth/login.dto';
+} from '../../infra/http/dtos/auth/login.dto';
 import { TeachersRepository } from '../repositories/teachers-repository';
 import { Injectable } from '@nestjs/common';
-import { Either, left, right } from 'src/core/types/either';
+import { Either, left, right } from '../../core/types/either';
 import { z } from 'zod';
-import { NoCompleteInformation } from 'src/core/errors/no-complete-information-error';
-import { ActionNotAllowed } from 'src/core/errors/action-not-allowed-error';
-import { ResourceNotFound } from 'src/core/errors/resource-not-found';
+import { NoCompleteInformation } from '../../core/errors/no-complete-information-error';
+import { ActionNotAllowed } from '../../core/errors/action-not-allowed-error';
+import { ResourceNotFound } from '../../core/errors/resource-not-found';
 import { Encrypter } from '../criptography/encrypter';
-import toRawString from 'src/core/utils/toRawString';
+import toRawString from '../../core/utils/toRawString';
 
 type AuthenticateUserUseCaseRequest = z.infer<typeof authSchema>;
 

@@ -1,6 +1,6 @@
 // import { Controller, Get, Delete, Param } from '@nestjs/common';
-// import { SwimmerEntity } from 'src/domain/entities/swimmer-entity';
-// import { SwimmersService } from 'src/domain/services/swimmers.service';
+// import { SwimmerEntity } from '../../domain/entities/swimmer-entity';
+// import { SwimmersService } from '../../domain/services/swimmers.service';
 
 // @Controller('swimmers')
 // export abstract class BaseController {

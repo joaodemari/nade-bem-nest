@@ -1,4 +1,4 @@
-import { LevelsRepository } from 'src/domain/repositories/levels-repository';
+import { LevelsRepository } from '../../../../domain/repositories/levels-repository';
 import { PrismaService } from '../prisma.service';
 
 export class PrismaLevelsRepository extends LevelsRepository {

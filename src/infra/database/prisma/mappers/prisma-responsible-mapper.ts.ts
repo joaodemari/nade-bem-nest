@@ -1,4 +1,4 @@
-import { ResponsibleEntity } from 'src/domain/entities/ResponsibleEntity';
+import { ResponsibleEntity } from '../../../../domain/entities/ResponsibleEntity';
 import { Prisma, Responsible as PrismaResponsible } from '@prisma/client';
 
 export class PrismaResponsiblesMapper {

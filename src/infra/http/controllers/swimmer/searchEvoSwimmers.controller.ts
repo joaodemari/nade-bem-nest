@@ -6,7 +6,7 @@
 // import { prismaPeriodsRepository } from "../../../database/repositories/prisma-periods-repository";
 // import { PeriodPresenter } from "../../../presenters/periods-presenter";
 // import { evourl } from "../../../api/evourl";
-// import { SwimmerEvo } from "src/domain/Evo/interfaces/SwimmerEvoInterface";
+// import { SwimmerEvo } from "../domain/Evo/interfaces/SwimmerEvoInterface";
 
 // export default async (
 //     req: AuthenticatedRequest & {

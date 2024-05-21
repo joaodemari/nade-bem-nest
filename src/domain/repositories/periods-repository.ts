@@ -1,4 +1,4 @@
-import { IRepository } from 'src/core/generic/I-repository';
+import { IRepository } from '../../core/generic/I-repository';
 import { PeriodEntity } from '../entities/PeriodEntity';
 
 abstract class PeriodsRepository extends IRepository<PeriodEntity> {

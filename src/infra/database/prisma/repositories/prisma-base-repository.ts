@@ -1,6 +1,6 @@
-import { IRepository } from 'src/core/generic/I-repository';
+import { IRepository } from '../../../../core/generic/I-repository';
 import { PrismaService } from '../prisma.service';
-import { BaseEntity } from 'src/core/generic/base-entity';
+import { BaseEntity } from '../../../../core/generic/base-entity';
 
 export class PrismaBaseRepository<ENTITY extends BaseEntity<unknown>>
   implements IRepository<ENTITY>

@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 import { PrismaService } from './prisma/prisma.service';
-import { SwimmersRepository } from 'src/domain/repositories/swimmers-repository';
+import { SwimmersRepository } from '../../domain/repositories/swimmers-repository';
 import { PrismaSwimmersRepository } from './prisma/repositories/prisma-swimmers-repository';
-import { TeachersRepository } from 'src/domain/repositories/teachers-repository';
+import { TeachersRepository } from '../../domain/repositories/teachers-repository';
 import { PrismaTeachersRepository } from './prisma/repositories/prisma-teachers-repository';
-import PeriodsRepository from 'src/domain/repositories/periods-repository';
+import PeriodsRepository from '../../domain/repositories/periods-repository';
 import { PrismaPeriodsRepository } from './prisma/repositories/prisma-periods-repository';
-import { ReportsRepository } from 'src/domain/repositories/reports-repository';
+import { ReportsRepository } from '../../domain/repositories/reports-repository';
 import { PrismaReportsRepository } from './prisma/repositories/prisma-reports-repository';
 
 @Module({

@@ -1,6 +1,6 @@
-import { TeachersRepository } from 'src/domain/repositories/teachers-repository';
+import { TeachersRepository } from '../../../../domain/repositories/teachers-repository';
 import { randomUUID } from 'crypto';
-import { TeacherEntity } from 'src/domain/entities/TeacherEntity';
+import { TeacherEntity } from '../../../../domain/entities/TeacherEntity';
 import { PrismaTeachersMapper } from '../mappers/prisma-teacher-mapper';
 import { PrismaBaseRepository } from './prisma-base-repository';
 import { Injectable } from '@nestjs/common';

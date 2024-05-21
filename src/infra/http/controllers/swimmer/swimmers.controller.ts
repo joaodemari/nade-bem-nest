@@ -6,16 +6,16 @@ import {
   Query,
   BadRequestException,
 } from '@nestjs/common';
-import { SwimmerEntity } from 'src/domain/entities/swimmer-entity';
-import { SwimmersService } from 'src/domain/services/swimmers.service';
+import { SwimmerEntity } from '../../../../domain/entities/swimmer-entity';
+import { SwimmersService } from '../../../../domain/services/swimmers.service';
 import {
   ListSwimmersQueryDTO,
   ListSwimmersQuerySchema,
 } from '../../dtos/ListSwimmers.dto';
-import { PeriodPresenter } from 'src/infra/presenters/periods-presenter';
-import { SwimmerPresenter } from 'src/infra/presenters/swimmers-presenter';
+import { PeriodPresenter } from '../../../../infra/presenters/periods-presenter';
+import { SwimmerPresenter } from '../../../../infra/presenters/swimmers-presenter';
 import { Roles } from '../../decorators/role.decorator';
-import { Role } from 'src/domain/enums/role.enum';
+import { Role } from '../../../../domain/enums/role.enum';
 import { CurrentUser } from '../../decorators/current-user.decorator';
 import { AuthPayloadDTO } from '../../dtos/auth/login.dto';
 import { UseZodGuard } from 'nestjs-zod';

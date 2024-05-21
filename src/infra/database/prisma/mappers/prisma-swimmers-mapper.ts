@@ -1,4 +1,4 @@
-import { SwimmerEntity } from 'src/domain/entities/swimmer-entity';
+import { SwimmerEntity } from '../../../../domain/entities/swimmer-entity';
 import { Prisma, Swimmer as PrismaSwimmer } from '@prisma/client';
 
 export class PrismaSwimmersMapper {

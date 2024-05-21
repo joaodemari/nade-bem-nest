@@ -1,4 +1,4 @@
-import { PeriodEntity } from 'src/domain/entities/PeriodEntity';
+import { PeriodEntity } from '../../../../domain/entities/PeriodEntity';
 import { Prisma, Period as PrismaPeriod } from '@prisma/client';
 
 export class PrismaPeriodsMapper {

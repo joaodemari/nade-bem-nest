@@ -9,8 +9,8 @@ import { Job } from 'bull';
 import { Logger } from '@nestjs/common';
 import axios from 'axios';
 import { EnvService } from '../env/env.service';
-import { SwimmerEvo } from 'src/domain/evo/entities/swimmer-evo-entity';
-import { SwimmersRepository } from 'src/domain/repositories/swimmers-repository';
+import { SwimmerEvo } from '../../domain/evo/entities/swimmer-evo-entity';
+import { SwimmersRepository } from '../../domain/repositories/swimmers-repository';
 
 @Processor(REFRESH_QUEUE)
 export class RefreshSwimmersConsumer {

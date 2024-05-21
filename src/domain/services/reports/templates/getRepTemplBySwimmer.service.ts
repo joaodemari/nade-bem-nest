@@ -1,8 +1,8 @@
 import { Step, Area, Level } from '@prisma/client';
-import { right } from 'src/core/types/either';
-import { LevelsRepository } from 'src/domain/repositories/levels-repository';
-import { ReportsRepository } from 'src/domain/repositories/reports-repository';
-import { getLevelTemplateResponse } from 'src/infra/http/dtos/reports/templates/getLevelTemplate.dto';
+import { right } from '../../../../core/types/either';
+import { LevelsRepository } from '../../../../domain/repositories/levels-repository';
+import { ReportsRepository } from '../../../../domain/repositories/reports-repository';
+import { getLevelTemplateResponse } from '../../../../infra/http/dtos/reports/templates/getLevelTemplate.dto';
 
 export class GetRepTemplBySwimmerService {
   constructor(

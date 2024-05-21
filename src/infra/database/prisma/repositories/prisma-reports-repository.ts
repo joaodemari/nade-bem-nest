@@ -1,8 +1,8 @@
 import { Area, Level, Period, Step, Swimmer, Teacher } from '@prisma/client';
 import { PrismaBaseRepository } from './prisma-base-repository';
-import { ReportEntity } from 'src/domain/entities/ReportEntity';
+import { ReportEntity } from '../../../../domain/entities/ReportEntity';
 import { PrismaService } from '../prisma.service';
-import { ReportsRepository } from 'src/domain/repositories/reports-repository';
+import { ReportsRepository } from '../../../../domain/repositories/reports-repository';
 
 export class PrismaReportsRepository
   extends PrismaBaseRepository<ReportEntity>

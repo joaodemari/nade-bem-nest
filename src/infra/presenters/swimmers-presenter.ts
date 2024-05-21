@@ -1,4 +1,4 @@
-import { SwimmerEntity } from 'src/domain/entities/swimmer-entity';
+import { SwimmerEntity } from '../../domain/entities/swimmer-entity';
 
 export class SwimmerPresenter {
   static toHTTP(swimmer: SwimmerEntity | SwimmerEntity[] | null) {

@@ -1,4 +1,4 @@
-import { BaseEntity } from 'src/core/generic/base-entity';
+import { BaseEntity } from '../../core/generic/base-entity';
 
 export interface TeacherInterface {
   teacherNumber: number;
@@ -9,8 +9,7 @@ export interface TeacherInterface {
   resetToken?: string | null;
 }
 
-export class TeacherEntity extends BaseEntity<TeacherInterface> { 
-
+export class TeacherEntity extends BaseEntity<TeacherInterface> {
   static create(props: TeacherInterface, id?: string) {
     return new TeacherEntity(props, id);
   }

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { BasicStrategy } from 'passport-http';
-import { AuthenticationService } from 'src/domain/services/authentication.service';
+import { AuthenticationService } from '../../../domain/services/authentication.service';
 
 @Injectable()
 export class HttpStrategy extends PassportStrategy(BasicStrategy) {

@@ -1,13 +1,13 @@
-import { SwimmersRepository } from 'src/domain/repositories/swimmers-repository';
-import { SwimmerEvo } from 'src/domain/evo/entities/swimmer-evo-entity';
-import { SwimmerEvoMapper } from 'src/domain/evo/mappers/swimmer-evo-mapper';
+import { SwimmersRepository } from '../../../../domain/repositories/swimmers-repository';
+import { SwimmerEvo } from '../../../../domain/evo/entities/swimmer-evo-entity';
+import { SwimmerEvoMapper } from '../../../../domain/evo/mappers/swimmer-evo-mapper';
 import { PrismaSwimmersMapper } from '../mappers/prisma-swimmers-mapper';
-import { SwimmerEntity } from 'src/domain/entities/swimmer-entity';
+import { SwimmerEntity } from '../../../../domain/entities/swimmer-entity';
 import { PrismaBaseRepository } from './prisma-base-repository';
 import { PrismaService } from '../prisma.service';
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import PeriodsRepository from 'src/domain/repositories/periods-repository';
+import PeriodsRepository from '../../../../domain/repositories/periods-repository';
 
 @Injectable()
 export class PrismaSwimmersRepository

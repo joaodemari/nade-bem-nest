@@ -1,6 +1,6 @@
-import { PeriodEntity } from 'src/domain/entities/PeriodEntity';
+import { PeriodEntity } from '../../../../domain/entities/PeriodEntity';
 import { PrismaPeriodsMapper } from '../mappers/prisma-period-mapper';
-import PeriodsRepository from 'src/domain/repositories/periods-repository';
+import PeriodsRepository from '../../../../domain/repositories/periods-repository';
 import { Injectable } from '@nestjs/common';
 import { PrismaBaseRepository } from './prisma-base-repository';
 import { PrismaService } from '../prisma.service';

@@ -1,4 +1,4 @@
-import { TeacherEntity } from 'src/domain/entities/TeacherEntity';
+import { TeacherEntity } from '../../../../domain/entities/TeacherEntity';
 import { Prisma, Teacher as PrismaTeacher } from '@prisma/client';
 
 export class PrismaTeachersMapper {

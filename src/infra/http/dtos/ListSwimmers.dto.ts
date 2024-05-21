@@ -1,11 +1,11 @@
 import { createZodDto } from 'nestjs-zod';
-import { Either } from 'src/core/types/either';
+import { Either } from '../../../core/types/either';
 import { swimmerSchema } from './swimmers/swimmer.dto';
 import { periodSchema } from './periods/period.dto';
 import { z } from 'zod';
-import { NoCompleteInformation } from 'src/core/errors/no-complete-information-error';
-import { PeriodEntity } from 'src/domain/entities/PeriodEntity';
-import { SwimmerEntity } from 'src/domain/entities/swimmer-entity';
+import { NoCompleteInformation } from '../../../core/errors/no-complete-information-error';
+import { PeriodEntity } from '../../../domain/entities/PeriodEntity';
+import { SwimmerEntity } from '../../../domain/entities/swimmer-entity';
 
 export const isString = (value: unknown): value is string =>
   typeof value === 'string';

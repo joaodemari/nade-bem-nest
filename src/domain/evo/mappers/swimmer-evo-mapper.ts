@@ -1,4 +1,4 @@
-import { SwimmerEntity } from 'src/domain/entities/swimmer-entity';
+import { SwimmerEntity } from '../../entities/swimmer-entity';
 import { SwimmerEvo } from '../entities/swimmer-evo-entity';
 
 export class SwimmerEvoMapper {

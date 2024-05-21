@@ -1,4 +1,4 @@
-import { ReportEntity } from 'src/domain/entities/ReportEntity';
+import { ReportEntity } from '../../../../domain/entities/ReportEntity';
 import { Report as PrismaReport } from '@prisma/client';
 
 export class PrismaReportsMapper {

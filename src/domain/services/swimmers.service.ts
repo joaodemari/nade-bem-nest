@@ -1,16 +1,16 @@
-import { BaseService } from 'src/core/generic/base-service';
+import { BaseService } from '../../core/generic/base-service';
 import { SwimmerEntity } from '../entities/swimmer-entity';
 import { SwimmersRepository } from '../repositories/swimmers-repository';
 import { Injectable } from '@nestjs/common';
 import {
   ListSwimmersProps,
   ListSwimmersResponse,
-} from 'src/infra/http/dtos/ListSwimmers.dto';
-import { NoCompleteInformation } from 'src/core/errors/no-complete-information-error';
-import { left, right } from 'src/core/types/either';
+} from '../../infra/http/dtos/ListSwimmers.dto';
+import { NoCompleteInformation } from '../../core/errors/no-complete-information-error';
+import { left, right } from '../../core/types/either';
 import { PeriodEntity } from '../entities/PeriodEntity';
 import PeriodsRepository from '../repositories/periods-repository';
-import cleanContains from 'src/core/utils/cleanContains';
+import cleanContains from '../../core/utils/cleanContains';
 
 @Injectable()
 export class SwimmersService extends BaseService<

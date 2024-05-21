@@ -5,7 +5,7 @@ import {
   InternalServerErrorException,
   Param,
 } from '@nestjs/common';
-import { GetRepTemplBySwimmerService } from 'src/domain/services/reports/templates/getRepTemplBySwimmer.service';
+import { GetRepTemplBySwimmerService } from '../../../../domain/services/reports/templates/getRepTemplBySwimmer.service';
 
 @Controller('report-template')
 export class GetTemplateReportBySwimmerController {
