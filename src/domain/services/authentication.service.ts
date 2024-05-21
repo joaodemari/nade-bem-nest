@@ -33,6 +33,7 @@ export class AuthenticationService {
     if (!email) return left(new NoCompleteInformation('user email'));
     if (!password) return left(new NoCompleteInformation('user password'));
 
+    console.log(email);
     const teacher = await this.teacherRepository.findByEmail(
       toRawString(email),
     );

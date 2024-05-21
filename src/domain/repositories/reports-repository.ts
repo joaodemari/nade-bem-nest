@@ -3,7 +3,7 @@ import { ReportEntity } from '../entities/ReportEntity';
 import { Area, Level, Period, Step, Swimmer, Teacher } from '@prisma/client';
 
 export abstract class ReportsRepository extends IRepository<ReportEntity> {
-  abstract findReportsAndAreasAndSteps(reportId: string): Promise<
+  abstract findReportsAreasStepsTeacherSwimmer(reportId: string): Promise<
     | ({
         observation: string;
         swimmer: Swimmer;
@@ -16,4 +16,14 @@ export abstract class ReportsRepository extends IRepository<ReportEntity> {
       } & Level)
     | null
   >;
+
+  abstract findReportAreasSelectedSteps(reportId: string): Promise<{
+    level: Level;
+    approved: boolean;
+    observation: string;
+    areas: ({
+      lastReportStepId: string;
+      steps: Step[];
+    } & Area)[];
+  } | null>;
 }

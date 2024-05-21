@@ -12,7 +12,7 @@ export class PrismaReportsRepository
     super(prisma, 'report');
   }
 
-  async findReportsAndAreasAndSteps(reportId: string): Promise<
+  async findReportsAreasStepsTeacherSwimmer(reportId: string): Promise<
     | ({
         observation: string;
         swimmer: Swimmer;
@@ -66,6 +66,55 @@ export class PrismaReportsRepository
             lastReportStepId:
               report.ReportAndSteps.find((step) => step.step.areaId === area.id)
                 ?.stepId ?? '',
+          };
+        }),
+      };
+
+      return reportLevelWithSelectedSteps;
+    } catch (e) {
+      console.log(e);
+      return null;
+    }
+  }
+
+  async findReportAreasSelectedSteps(reportId: string): Promise<{
+    level: Level;
+    approved: boolean;
+    observation: string;
+    areas: ({
+      lastReportStepId: string;
+      steps: Step[];
+    } & Area)[];
+  } | null> {
+    try {
+      const report = await this.prisma.report.findUnique({
+        where: { id: reportId },
+        include: {
+          level: {
+            include: {
+              areas: {
+                include: { steps: { include: { ReportAndSteps: true } } },
+              },
+            },
+          },
+          Period: true,
+        },
+      });
+
+      const reportLevelWithSelectedSteps = {
+        level: report.level,
+        period: report.Period,
+        observation: report.observation,
+        approved: report.approved,
+        areas: report.level.areas.map((area) => {
+          return {
+            ...area,
+            lastReportStepId:
+              area.steps.find((step) =>
+                step.ReportAndSteps.some(
+                  (reportStep) => reportStep.reportId === report.id,
+                ),
+              )?.id ?? '',
           };
         }),
       };

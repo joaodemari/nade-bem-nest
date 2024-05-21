@@ -1,13 +1,6 @@
-import { z } from "zod";
-
-({
-    lastReportStepId: string;
-    steps: Step[];
-} & Area)[];
-
-
+import { z } from 'zod';
 export const areaSchema = z.object({
-    id: z.string(),
-    name: z.string(),
-    levelId: z.string(),
+  id: z.string(),
+  name: z.string(),
+  levelId: z.string(),
 });
