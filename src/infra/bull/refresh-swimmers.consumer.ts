@@ -46,7 +46,7 @@ export class RefreshSwimmersConsumer {
   onError(job: Job, error: Error) {
     this.logger.error(
       `Refreshing swimmers of teacher has been failed: JobID ${job.id}`,
-      error.message,
+      error,
     );
   }
 
