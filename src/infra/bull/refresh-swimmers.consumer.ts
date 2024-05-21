@@ -1,6 +1,7 @@
 import {
   OnQueueActive,
   OnQueueCompleted,
+  OnQueueError,
   Process,
   Processor,
 } from '@nestjs/bull';
@@ -38,6 +39,14 @@ export class RefreshSwimmersConsumer {
   onCompleted(job: Job) {
     this.logger.log(
       `Refreshing swimmers of teacher has been completed: JobID ${job.id}`,
+    );
+  }
+
+  @OnQueueError()
+  onError(job: Job, error: Error) {
+    this.logger.error(
+      `Refreshing swimmers of teacher has been failed: JobID ${job.id}`,
+      error.message,
     );
   }
 
