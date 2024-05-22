@@ -43,7 +43,7 @@ export class RefreshSwimmersConsumer {
           status: 1,
         },
         headers: {
-          Authorization: `Basic ${credentials}`, // Use btoa here
+          Authorization: `Basic ${credentials}`,
         },
       });
       if (!(response.status === 200)) {
