@@ -10,19 +10,19 @@ import { AuthPayloadDTO } from '../../dtos/auth/login.dto';
 @Roles(Role.teacher)
 @Controller('integration')
 export class RefreshSwimmersController {
-  constructor() {} // private readonly refreshQueue: Queue<{ teacherNumber: number }>, // @InjectQueue(REFRESH_QUEUE)
+  constructor(
+    @InjectQueue(REFRESH_QUEUE)
+    private readonly refreshQueue: Queue<{ teacherNumber: number }>,
+  ) {}
 
   @Post('/swimmer/refresh')
   async handle(@CurrentUser() user: AuthPayloadDTO): Promise<void> {
-    // await this.refreshQueue.add(
-    //   { teacherNumber: user.memberNumber },
-    //   {
-    //     removeOnComplete: true,
-    //     removeOnFail: true,
-    //   },
-    // );
-
-    console.log('Swimmers refreshed');
-    return;
+    await this.refreshQueue.add(
+      { teacherNumber: user.memberNumber },
+      {
+        removeOnComplete: true,
+        removeOnFail: true,
+      },
+    );
   }
 }

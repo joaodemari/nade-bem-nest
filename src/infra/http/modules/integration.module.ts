@@ -10,9 +10,9 @@ import { RecieveWebhookController } from '../../webhook/recieve-webhook/recieve-
 @Module({
   imports: [
     DatabaseModule,
-    // BullModule.registerQueue({
-    //   name: REFRESH_QUEUE,
-    // }),
+    BullModule.registerQueue({
+      name: REFRESH_QUEUE,
+    }),
   ],
   controllers: [RefreshSwimmersController, RecieveWebhookController],
   providers: [RefreshSwimmersConsumer, EnvService],
