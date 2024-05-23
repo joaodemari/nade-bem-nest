@@ -64,13 +64,18 @@ export class RefreshSwimmersConsumer {
       );
 
       if (data.length !== 0) {
-        console.log('Está funcionando?');
         swimmersInEvo.push(...swimmersInRequest);
         skip += 50;
       } else {
         hasEnded = true;
       }
     }
+
+    console.log(
+      `------ PROFESSOR ${swimmersInEvo[0].nameEmployeeInstructor} ATUALIZADO COM SUCESSO ✅------`,
+    );
+
+    console.log('Alunos Encontrados: ', swimmersInEvo.length);
 
     await this.swimmersRepository.upsertManyFromEvo(swimmersInEvo);
     await this.swimmersRepository.deleteDuplicates();

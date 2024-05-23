@@ -7,4 +7,5 @@ export interface SwimmerEvo {
   lastAccessDate: string;
   idEmployeeInstructor: number;
   photoUrl: string;
+  nameEmployeeInstructor: string;
 }
