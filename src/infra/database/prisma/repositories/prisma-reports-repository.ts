@@ -79,6 +79,30 @@ export class PrismaReportsRepository
     }
   }
 
+  async deleteInvalidReports(): Promise<void> {
+    const reports = await this.prisma.report.findMany({});
+
+    const idsToDelete = reports.filter((report) => {
+      return report.observation.length < 10;
+    });
+ 
+    await this.prisma.reportAndSteps.deleteMany({
+      where: {
+        reportId: {
+          in: idsToDelete.map((report) => report.id),
+        },
+      },
+    });
+
+    await this.prisma.report.deleteMany({
+      where: {
+        id: {
+          in: idsToDelete.map((report) => report.id),
+        },
+      },
+    });
+  }
+
   async findReportAreasSelectedSteps(reportId: string): Promise<{
     level: Level;
     approved: boolean;

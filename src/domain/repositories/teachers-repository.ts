@@ -13,4 +13,14 @@ export abstract class TeachersRepository extends IRepository<TeacherEntity> {
     email: string,
     password: string,
   ): Promise<TeacherEntity | null>;
+  abstract countReports(props: {
+    periodId: string;
+    branchId?: string;
+  }): Promise<
+    {
+      teacherId: number;
+      name: string;
+      reports: number;
+    }[]
+  >;
 }

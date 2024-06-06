@@ -26,4 +26,6 @@ export abstract class ReportsRepository extends IRepository<ReportEntity> {
       steps: Step[];
     } & Area)[];
   } | null>;
+
+  abstract deleteInvalidReports(): Promise<void>;
 }

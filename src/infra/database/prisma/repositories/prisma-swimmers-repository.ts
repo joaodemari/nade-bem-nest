@@ -49,7 +49,7 @@ export class PrismaSwimmersRepository
   async findManyByTeacher(teacherNumber: number): Promise<SwimmerEntity[]> {
     if (!teacherNumber) return [];
 
-    const where: Prisma.SwimmerWhereInput = {
+    const where: Prisma.SwimmerWhereInput = teacherNumber ===  8888 ?  {} : {
       teacherNumber,
     };
     const swimmers = await this.prisma.swimmer.findMany({

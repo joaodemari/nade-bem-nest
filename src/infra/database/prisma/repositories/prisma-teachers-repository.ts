@@ -14,6 +14,43 @@ export class PrismaTeachersRepository
   constructor(prisma: PrismaService) {
     super(prisma, 'teacher');
   }
+
+  async countReports({
+    periodId,
+    branchId,
+  }: {
+    periodId: string;
+    branchId?: string;
+  }): Promise<{ teacherId: number; name: string; reports: number }[]> {
+    const where = branchId ? { branchId } : {};
+
+    const teachers = await this.prisma.teacher.findMany({
+      where,
+      include: {
+        swimmers: {
+          include: {
+            Report: {
+              where: {
+                periodId,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const teachersMapped = teachers.map((teacher) => ({
+      teacherId: teacher.teacherNumber,
+      name: teacher.name,
+      reports: teacher.swimmers.reduce(
+        (acc, swimmer) => acc + swimmer.Report.length,
+        0,
+      ),
+    }));
+    console.log('ta atualizado papai cricket: ', teachersMapped);
+
+    return teachersMapped;
+  }
   async checkEmailAndPass(
     email: string,
     password: string,
