@@ -4,6 +4,7 @@ export interface SwimmerInterface {
   memberNumber: number;
   name: string;
   photoUrl: string | null;
+  isActive: boolean;
   lastAccess: string;
   actualLevelName: string;
   teacherNumber: number | null;
@@ -20,6 +21,9 @@ export class SwimmerEntity extends BaseEntity<SwimmerInterface> {
     return this.props.memberNumber;
   }
 
+  get isActive() {
+    return this.props.isActive;
+  }
   get name() {
     return this.props.name;
   }

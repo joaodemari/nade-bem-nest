@@ -8,6 +8,11 @@ import { PrismaService } from '../prisma.service';
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import PeriodsRepository from '../../../../domain/repositories/periods-repository';
+import { SwimmerInfoResponse } from '../../../http/dtos/swimmers/swimmerInfo.dto';
+import axios from 'axios';
+import { ConfigService } from '@nestjs/config';
+import { EnvService } from '../../../env/env.service';
+import capitalizeName from '../../../../core/utils/capitalizeName';
 
 @Injectable()
 export class PrismaSwimmersRepository
@@ -17,6 +22,7 @@ export class PrismaSwimmersRepository
   constructor(
     prisma: PrismaService,
     private readonly periodsRepository: PeriodsRepository,
+    private readonly env: EnvService,
   ) {
     super(prisma, 'swimmer');
   }
@@ -49,9 +55,13 @@ export class PrismaSwimmersRepository
   async findManyByTeacher(teacherNumber: number): Promise<SwimmerEntity[]> {
     if (!teacherNumber) return [];
 
-    const where: Prisma.SwimmerWhereInput = teacherNumber ===  8888 ?  {} : {
-      teacherNumber,
-    };
+    const where: Prisma.SwimmerWhereInput =
+      teacherNumber === 8888
+        ? {}
+        : {
+            teacherNumber,
+          };
+          
     const swimmers = await this.prisma.swimmer.findMany({
       where,
       orderBy: {
@@ -162,7 +172,7 @@ export class PrismaSwimmersRepository
   async findSwimmerAndReports(idMember: number) {
     const swimmer = await this.prisma.swimmer.findFirst({
       where: { memberNumber: idMember },
-      select: {
+      include: {
         Report: {
           select: {
             id: true,
@@ -171,9 +181,7 @@ export class PrismaSwimmersRepository
           },
         },
         actualLevel: true,
-        photoUrl: true,
-        name: true,
-        memberNumber: true,
+        Teacher: true,
       },
     });
     if (!swimmer) {
@@ -189,12 +197,42 @@ export class PrismaSwimmersRepository
       reports: swimmer.Report.map((report) => {
         return {
           period: report.id,
-          teacherName: report.teacher?.name ?? 'Professor não encontrado',
+          teacherName: capitalizeName(
+            report.teacher?.name ?? swimmer.Teacher.name,
+          ),
           teacherPhoto: report.teacher?.photoUrl ?? 'sem url',
           level: report.level.name,
           id: report.id,
         };
       }),
     };
+  }
+
+  async createSwimmerFromEvoService(
+    memberNumber: number,
+  ): Promise<SwimmerInfoResponse | null> {
+    try {
+      const url = `https://evo-integracao.w12app.com.br/api/v1/members/${memberNumber}`;
+      const evo_cred = this.env.get('EVO_CRED');
+      const credentials = btoa(evo_cred);
+      const { data }: { data: SwimmerEvo } = await axios.get(url, {
+        headers: {
+          Authorization: `Basic ${credentials}`, // Use btoa here
+        },
+      });
+
+      const swimmer = await this.upsertOneFromEvo(data);
+      return {
+        swimmer: {
+          name: swimmer.name,
+          actualLevel: swimmer.actualLevelName,
+          photoUrl: swimmer.photoUrl,
+        },
+        reports: [],
+      };
+    } catch (e) {
+      console.log(e);
+      return null;
+    }
   }
 }

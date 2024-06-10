@@ -19,6 +19,7 @@ import { Role } from '../../../../domain/enums/role.enum';
 import { CurrentUser } from '../../decorators/current-user.decorator';
 import { AuthPayloadDTO } from '../../dtos/auth/login.dto';
 import { UseZodGuard } from 'nestjs-zod';
+import { SwimmerInfoResponse } from '../../dtos/swimmers/swimmerInfo.dto';
 
 @Controller('swimmers')
 export class SwimmersController {
@@ -34,6 +35,7 @@ export class SwimmersController {
     const result = await this.swimmerService.listByTeacherPaginated({
       page: +query.page,
       perPage: +query.perPage,
+      onlyActive: query.onlyActive === 'true',
       search: query.search,
       teacherNumber: user.memberNumber,
     });
@@ -49,8 +51,33 @@ export class SwimmersController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string): Promise<SwimmerEntity | void> {
-    return this.swimmerService.findById(id);
+  async findSwimmerInfo(
+    @Param('id') id: string,
+  ): Promise<BadRequestException | SwimmerInfoResponse> {
+    try {
+      if (Number.isNaN(id)) throw new BadRequestException('Invalid id');
+      console.log('id', id);
+      const memberNumber = Number(id);
+      let result: {
+        swimmer: {
+          name: string;
+          actualLevel: string;
+          photoUrl: string;
+        };
+        reports: {
+          period: string;
+          teacherName: string;
+          level: string;
+          id: string;
+        }[];
+      } = await this.swimmerService.findSwimmerInfo(memberNumber);
+      if (!result) {
+        throw new BadRequestException('Swimmer not found');
+      }
+      return result;
+    } catch (e) {
+      throw new BadRequestException(e.message);
+    }
   }
 
   @Delete(':id')

@@ -59,6 +59,8 @@ model Swimmer {
   actualLevel     Level  @relation(fields: [actualLevelName], references: [name])
   actualLevelName String
 
+  isActive Boolean @default(true)
+
   name       String
   photoUrl   String?
   lastAccess DateTime

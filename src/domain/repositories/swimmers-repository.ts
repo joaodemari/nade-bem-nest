@@ -1,6 +1,7 @@
 import { SwimmerEvo } from '../evo/entities/swimmer-evo-entity';
 import { SwimmerEntity } from '../entities/swimmer-entity';
 import { IRepository } from '../../core/generic/I-repository';
+import { SwimmerInfoResponse } from '../../infra/http/dtos/swimmers/swimmerInfo.dto';
 
 export abstract class SwimmersRepository extends IRepository<SwimmerEntity> {
   abstract upsertManyFromEvo(swimmers: SwimmerEvo[]): Promise<void>;
@@ -11,4 +12,10 @@ export abstract class SwimmersRepository extends IRepository<SwimmerEntity> {
     periodStartDate: Date,
   ): Promise<number>;
   abstract countSwimmers(teacherNumber: number): Promise<number>;
+  abstract findSwimmerAndReports(
+    idMember: number,
+  ): Promise<SwimmerInfoResponse | null>;
+  abstract createSwimmerFromEvoService(
+    memberNumber: number,
+  ): Promise<SwimmerInfoResponse | null>;
 }

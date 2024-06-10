@@ -10,6 +10,9 @@ import { SwimmerEntity } from '../../../domain/entities/swimmer-entity';
 export const isString = (value: unknown): value is string =>
   typeof value === 'string';
 
+export const isBoolean = (value: unknown): value is string =>
+  value === 'true' || value === 'false';
+
 export const ListSwimmersQuerySchema = z.object({
   page: z.preprocess(
     (value) => (isString(value) ? parseInt(value) : value),
@@ -20,6 +23,7 @@ export const ListSwimmersQuerySchema = z.object({
     z.number(),
   ),
   search: z.string().default(''),
+  onlyActive: z.enum(['true', 'false']).optional().default('false'),
 });
 
 export class ListSwimmersQueryDTO extends createZodDto(
@@ -31,6 +35,7 @@ export const ListSwimmersPropsSchema = z.object({
   perPage: z.number().positive().default(12),
   search: z.string().default(''),
   teacherNumber: z.number(),
+  onlyActive: z.boolean().default(false),
 });
 
 export class ListSwimmersProps extends createZodDto(ListSwimmersPropsSchema) {}

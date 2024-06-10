@@ -6,6 +6,7 @@ export class PrismaSwimmersMapper {
     const swimmer = SwimmerEntity.create(
       {
         name: prismaSwimmer.name,
+        isActive: prismaSwimmer.isActive,
         actualLevelName: prismaSwimmer.actualLevelName,
         lastAccess: prismaSwimmer.lastAccess.toISOString(),
         memberNumber: prismaSwimmer.memberNumber,
@@ -28,6 +29,7 @@ export class PrismaSwimmersMapper {
           name: swimmer.actualLevelName,
         },
       },
+      isActive: swimmer.isActive,
       lastAccess: new Date(swimmer.lastAccess),
       memberNumber: swimmer.memberNumber,
       photoUrl: swimmer.photoUrl,

@@ -10,10 +10,12 @@ import { ReportsRepository } from '../../domain/repositories/reports-repository'
 import { PrismaReportsRepository } from './prisma/repositories/prisma-reports-repository';
 import { LevelsRepository } from '../../domain/repositories/levels-repository';
 import { PrismaLevelsRepository } from './prisma/repositories/prisma-levels-repository';
+import { EnvService } from '../env/env.service';
 
 @Module({
   providers: [
     PrismaService,
+    EnvService,
     {
       provide: SwimmersRepository,
       useClass: PrismaSwimmersRepository,

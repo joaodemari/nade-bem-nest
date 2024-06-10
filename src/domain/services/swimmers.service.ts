@@ -11,6 +11,7 @@ import { left, right } from '../../core/types/either';
 import { PeriodEntity } from '../entities/PeriodEntity';
 import PeriodsRepository from '../repositories/periods-repository';
 import cleanContains from '../../core/utils/cleanContains';
+import { SwimmerInfoResponse } from '../../infra/http/dtos/swimmers/swimmerInfo.dto';
 
 @Injectable()
 export class SwimmersService extends BaseService<
@@ -24,11 +25,24 @@ export class SwimmersService extends BaseService<
     super(repository);
   }
 
+  async findSwimmerInfo(
+    memberNumber: number,
+  ): Promise<SwimmerInfoResponse | null> {
+    let result = await this.repository.findSwimmerAndReports(memberNumber);
+
+    if (!result) {
+      result = await this.repository.createSwimmerFromEvoService(memberNumber);
+    }
+
+    return result;
+  }
+
   async listByTeacherPaginated({
     page,
     perPage,
     search,
     teacherNumber,
+    onlyActive,
   }: ListSwimmersProps): Promise<ListSwimmersResponse> {
     if (!teacherNumber)
       return left(new NoCompleteInformation('teacher number'));
@@ -37,11 +51,15 @@ export class SwimmersService extends BaseService<
     // TODO: Melhorar a performance disso aqui:
     // fazer apenas 1 requisição para a parte de swimmers
     // e não 3 kkkkkkkkkk
-    const [swimmers, period]: [SwimmerEntity[], PeriodEntity] =
-      await Promise.all([
+    let [swimmers, period]: [SwimmerEntity[], PeriodEntity] = await Promise.all(
+      [
         this.repository.findManyByTeacher(teacherNumber),
         this.periodsRepository.findActualPeriod(),
-      ]);
+      ],
+    );
+
+    console.log('onlyActive', onlyActive);
+    if (onlyActive) swimmers = swimmers.filter((s) => s.isActive);
 
     const swimmersWithoutReports = swimmers.filter(
       (s) => !s.lastReport || new Date(s.lastReport) < period.startDate,

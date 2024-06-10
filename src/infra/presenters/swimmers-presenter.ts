@@ -15,6 +15,7 @@ export class SwimmerPresenter {
           teacherNumber: swimmer.teacherNumber,
           lastReport: swimmer.lastReport,
           lastReportId: swimmer.lastReportId,
+          isActive: swimmer.isActive,
         };
       });
     }
@@ -28,6 +29,7 @@ export class SwimmerPresenter {
       teacherNumber: swimmer.teacherNumber,
       lastReport: swimmer.lastReport,
       lastReportId: swimmer.lastReportId,
+      isActive: swimmer.isActive,
     };
   }
 }

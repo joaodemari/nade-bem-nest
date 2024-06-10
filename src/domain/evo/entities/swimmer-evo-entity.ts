@@ -1,5 +1,6 @@
 export interface SwimmerEvo {
   idMember: number;
+  accessBlocked: boolean;
   firstName: string;
   lastName: string;
   idBranch: number;
