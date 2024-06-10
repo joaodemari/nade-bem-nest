@@ -27,7 +27,7 @@ export class SwimmersController {
   constructor(private readonly swimmerService: SwimmersService) {}
 
   @Get()
-  @IsPublic()
+  @Roles(Role.teacher)
   @UseZodGuard('query', ListSwimmersQuerySchema)
   async findAll(
     @Query() query: ListSwimmersQueryDTO,
@@ -52,6 +52,7 @@ export class SwimmersController {
   }
 
   @Get(':id')
+  @IsPublic()
   async findSwimmerInfo(
     @Param('id') id: string,
   ): Promise<BadRequestException | SwimmerInfoResponse> {
