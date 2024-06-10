@@ -20,13 +20,14 @@ import { CurrentUser } from '../../decorators/current-user.decorator';
 import { AuthPayloadDTO } from '../../dtos/auth/login.dto';
 import { UseZodGuard } from 'nestjs-zod';
 import { SwimmerInfoResponse } from '../../dtos/swimmers/swimmerInfo.dto';
+import { IsPublic } from '../../decorators/is-public.decorator';
 
 @Controller('swimmers')
 export class SwimmersController {
   constructor(private readonly swimmerService: SwimmersService) {}
 
   @Get()
-  @Roles(Role.teacher)
+  @IsPublic()
   @UseZodGuard('query', ListSwimmersQuerySchema)
   async findAll(
     @Query() query: ListSwimmersQueryDTO,
