@@ -19,4 +19,12 @@ export class PrismaBranchRepository
     const inPrisma = await this.prisma.branch.create({ data });
     return PrismaBranchesMapper.toDomain(inPrisma);
   }
+
+  async updateBranchSwimmers(branchId: string): Promise<void> {
+    await this.prisma.teacher.updateMany({
+      data: {
+        branchId,
+      },
+    });
+  }
 }

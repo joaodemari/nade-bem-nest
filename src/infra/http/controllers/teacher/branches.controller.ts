@@ -17,6 +17,7 @@ export class BranchController {
 
   @Get()
   async findAll() {
+    await this.service.updateSwimmers('6667a0afcb5dacae8ccb2951');
     return await this.service.findAll();
   }
 }

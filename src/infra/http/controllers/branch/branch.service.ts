@@ -17,4 +17,8 @@ export class BranchService extends BaseService<BranchEntity, BranchRepository> {
     });
     return await this.repository.createBranch(branch);
   }
+
+  async updateSwimmers(branchId: string): Promise<void> {
+    return await this.repository.updateBranchSwimmers(branchId);
+  }
 }
