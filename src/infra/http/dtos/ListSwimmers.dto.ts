@@ -36,6 +36,7 @@ export const ListSwimmersPropsSchema = z.object({
   search: z.string().default(''),
   teacherNumber: z.number(),
   onlyActive: z.boolean().default(false),
+  branchId: z.string(),
 });
 
 export class ListSwimmersProps extends createZodDto(ListSwimmersPropsSchema) {}

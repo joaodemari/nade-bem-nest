@@ -39,6 +39,7 @@ export class SwimmersController {
       onlyActive: query.onlyActive === 'true',
       search: query.search,
       teacherNumber: user.memberNumber,
+      branchId: user.branchId,
     });
     if (result.isLeft()) {
       throw new BadRequestException(result.value.message);

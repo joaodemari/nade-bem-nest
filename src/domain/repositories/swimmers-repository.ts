@@ -6,7 +6,7 @@ import { SwimmerInfoResponse } from '../../infra/http/dtos/swimmers/swimmerInfo.
 export abstract class SwimmersRepository extends IRepository<SwimmerEntity> {
   abstract upsertManyFromEvo(swimmers: SwimmerEvo[]): Promise<void>;
   abstract deleteDuplicates(): Promise<void>;
-  abstract findManyByTeacher(teacherNumber: number): Promise<SwimmerEntity[]>;
+  abstract findManyByTeacher(teacherNumber: number, branchId:string): Promise<SwimmerEntity[]>;
   abstract countSwimmersWithoutReport(
     teacherNumber: number,
     periodStartDate: Date,

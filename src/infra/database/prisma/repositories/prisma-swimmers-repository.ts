@@ -52,16 +52,22 @@ export class PrismaSwimmersRepository
     return swimmersCount;
   }
 
-  async findManyByTeacher(teacherNumber: number): Promise<SwimmerEntity[]> {
+  async findManyByTeacher(
+    teacherNumber: number,
+    branchId: string,
+  ): Promise<SwimmerEntity[]> {
     if (!teacherNumber) return [];
 
     const where: Prisma.SwimmerWhereInput =
       teacherNumber === 8888
-        ? {}
+        ? {
+            branchId,
+          }
         : {
             teacherNumber,
+            branchId,
           };
-          
+
     const swimmers = await this.prisma.swimmer.findMany({
       where,
       orderBy: {

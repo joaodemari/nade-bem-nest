@@ -43,6 +43,7 @@ export class SwimmersService extends BaseService<
     search,
     teacherNumber,
     onlyActive,
+    branchId
   }: ListSwimmersProps): Promise<ListSwimmersResponse> {
     if (!teacherNumber)
       return left(new NoCompleteInformation('teacher number'));
@@ -53,7 +54,7 @@ export class SwimmersService extends BaseService<
     // e não 3 kkkkkkkkkk
     let [swimmers, period]: [SwimmerEntity[], PeriodEntity] = await Promise.all(
       [
-        this.repository.findManyByTeacher(teacherNumber),
+        this.repository.findManyByTeacher(teacherNumber, branchId),
         this.periodsRepository.findActualPeriod(),
       ],
     );
