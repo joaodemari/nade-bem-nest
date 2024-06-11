@@ -10,6 +10,7 @@ export interface SwimmerInterface {
   teacherNumber: number | null;
   lastReport?: string;
   lastReportId?: string;
+  branchId: string;
 }
 
 export class SwimmerEntity extends BaseEntity<SwimmerInterface> {
@@ -19,6 +20,9 @@ export class SwimmerEntity extends BaseEntity<SwimmerInterface> {
 
   get memberNumber() {
     return this.props.memberNumber;
+  }
+  get branchId() {
+    return this.props.branchId;
   }
 
   get isActive() {

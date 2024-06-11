@@ -3,7 +3,9 @@ import { TeacherEntity } from '../entities/TeacherEntity';
 
 export abstract class TeachersRepository extends IRepository<TeacherEntity> {
   abstract generateToken(id: number): Promise<string>;
-  abstract findByEmail(teacherEmail: string): Promise<TeacherEntity | null>;
+  abstract findByEmail(
+    teacherEmail: string,
+  ): Promise<{ teacher: TeacherEntity; branchApiKey: string } | null>;
   abstract updatePassword(
     teacherEmail: string,
     newPassword: string,

@@ -34,7 +34,7 @@ export class AuthenticationService {
     if (!password) return left(new NoCompleteInformation('user password'));
 
     console.log(email);
-    const teacher = await this.teacherRepository.findByEmail(
+    const { teacher, branchApiKey } = await this.teacherRepository.findByEmail(
       toRawString(email),
     );
     if (!teacher) return left(new ResourceNotFound(email));
@@ -47,6 +47,8 @@ export class AuthenticationService {
       memberNumber: teacher.teacherNumber,
       role: 'teacher',
       email: teacher.email,
+      branchId: teacher.branchId,
+      branchApiKey,
     });
 
     const response = {

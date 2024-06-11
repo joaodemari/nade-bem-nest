@@ -10,6 +10,7 @@ datasource db {
 model Branch {
   id           String        @id @default(auto()) @map("_id") @db.ObjectId
   name         String
+  apiKey       String        @unique
   teachers     Teacher[]
   swimmers     Swimmer[]
   levels       Level[]
@@ -28,8 +29,8 @@ model Teacher {
   resetToken    String?   @unique
   Report        Report[]
   swimmers      Swimmer[]
-  Branch        Branch?   @relation(fields: [branchId], references: [id])
-  branchId      String?   @db.ObjectId
+  Branch        Branch   @relation(fields: [branchId], references: [id])
+  branchId      String   @db.ObjectId
 }
 
 model Period {
@@ -74,8 +75,8 @@ model Swimmer {
 
   Responsible   Responsible? @relation(fields: [responsibleId], references: [id])
   responsibleId String?      @db.ObjectId
-  Branch        Branch?      @relation(fields: [branchId], references: [id])
-  branchId      String?      @db.ObjectId
+  Branch        Branch      @relation(fields: [branchId], references: [id])
+  branchId      String      @db.ObjectId
 }
 
 model Report {

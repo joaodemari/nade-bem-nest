@@ -17,12 +17,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: AuthPayloadDTO): Promise<AuthPayloadDTO> {
-    console.log(payload);
-
     return {
       memberNumber: payload.memberNumber,
       role: payload.role,
       email: payload.email,
+      branchId: payload.branchId,
+      branchApiKey: payload.branchApiKey,
     };
   }
 }

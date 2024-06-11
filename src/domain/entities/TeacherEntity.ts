@@ -7,11 +7,16 @@ export interface TeacherInterface {
   email: string;
   password?: string | null;
   resetToken?: string | null;
+  branchId: string;
 }
 
 export class TeacherEntity extends BaseEntity<TeacherInterface> {
   static create(props: TeacherInterface, id?: string) {
     return new TeacherEntity(props, id);
+  }
+
+  get branchId() {
+    return this.props.branchId;
   }
 
   get teacherNumber() {

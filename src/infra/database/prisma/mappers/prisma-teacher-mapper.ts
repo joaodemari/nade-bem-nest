@@ -11,6 +11,7 @@ export class PrismaTeachersMapper {
         resetToken: prismaTeacher.resetToken ?? null,
         photoUrl: prismaTeacher.photoUrl ?? null,
         teacherNumber: prismaTeacher.teacherNumber ?? null,
+        branchId: prismaTeacher.branchId,
       },
       prismaTeacher.id,
     );
@@ -28,6 +29,11 @@ export class PrismaTeachersMapper {
       resetToken: teacher.resetToken ?? null,
       photoUrl: teacher.photoUrl ?? null,
       teacherNumber: teacher.teacherNumber ?? null,
+      Branch: {
+        connect: {
+          id: teacher.branchId,
+        },
+      },
     };
 
     return prismaTeacher;

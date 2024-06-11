@@ -11,6 +11,7 @@ export class SwimmerEvoMapper {
       name: swimmerEvo.firstName + ' ' + swimmerEvo.lastName,
       photoUrl: swimmerEvo.photoUrl,
       teacherNumber: swimmerEvo.idEmployeeInstructor,
+      branchId: swimmerEvo.branchId,
     });
   }
 }

@@ -83,10 +83,15 @@ export class PrismaTeachersRepository
     return PrismaTeachersMapper.toDomain(teacher);
   }
 
-  async findByEmail(teacherEmail: string): Promise<TeacherEntity | null> {
+  async findByEmail(
+    teacherEmail: string,
+  ): Promise<{ teacher: TeacherEntity; branchApiKey: string } | null> {
     const teacher = await this.prisma.teacher.findUnique({
       where: {
         email: teacherEmail,
+      },
+      include: {
+        Branch: true,
       },
     });
 
@@ -94,7 +99,10 @@ export class PrismaTeachersRepository
       return null;
     }
 
-    return PrismaTeachersMapper.toDomain(teacher);
+    return {
+      teacher: PrismaTeachersMapper.toDomain(teacher),
+      branchApiKey: teacher.Branch.apiKey,
+    };
   }
 
   async updatePassword(token: string, newPassword: string): Promise<void> {

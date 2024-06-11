@@ -14,6 +14,7 @@ export class PrismaSwimmersMapper {
         teacherNumber: prismaSwimmer.teacherNumber ?? null,
         lastReport: prismaSwimmer.lastReport?.toISOString() ?? null,
         lastReportId: prismaSwimmer.lastReportId ?? null,
+        branchId: prismaSwimmer.branchId,
       },
       prismaSwimmer.id,
     );
@@ -40,6 +41,11 @@ export class PrismaSwimmersMapper {
             },
           }
         : undefined,
+      Branch: {
+        connect: {
+          id: swimmer.branchId,
+        },
+      },
     };
 
     return prismaSwimmer;
