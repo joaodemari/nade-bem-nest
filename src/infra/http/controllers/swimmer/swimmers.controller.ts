@@ -40,6 +40,7 @@ export class SwimmersController {
       search: query.search,
       teacherNumber: user.memberNumber,
       branchId: user.branchId,
+      periodStartDate: query.periodStartDate ?? Date.now().toString(),
     });
     if (result.isLeft()) {
       throw new BadRequestException(result.value.message);
@@ -48,7 +49,6 @@ export class SwimmersController {
       swimmers: SwimmerPresenter.toHTTP(result.value.swimmers),
       numberOfPages: result.value.numberOfPages,
       swimmersWithoutReports: result.value.swimmersWithoutReports,
-      period: PeriodPresenter.toHTTP(result.value.period),
     };
   }
 

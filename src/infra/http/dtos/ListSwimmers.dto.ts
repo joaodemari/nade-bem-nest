@@ -24,6 +24,7 @@ export const ListSwimmersQuerySchema = z.object({
   ),
   search: z.string().default(''),
   onlyActive: z.enum(['true', 'false']).optional().default('false'),
+  periodStartDate: z.string().optional().default(Date.now().toString()),
 });
 
 export class ListSwimmersQueryDTO extends createZodDto(
@@ -37,6 +38,7 @@ export const ListSwimmersPropsSchema = z.object({
   teacherNumber: z.number(),
   onlyActive: z.boolean().default(false),
   branchId: z.string(),
+  periodStartDate: z.string(),
 });
 
 export class ListSwimmersProps extends createZodDto(ListSwimmersPropsSchema) {}
@@ -56,7 +58,6 @@ export type ListSwimmersResponseRight = {
   swimmers: SwimmerEntity[];
   numberOfPages: number;
   swimmersWithoutReports: number;
-  period: PeriodEntity;
 };
 
 export type ListSwimmersResponse = Either<

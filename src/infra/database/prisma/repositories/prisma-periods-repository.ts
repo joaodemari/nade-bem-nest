@@ -4,6 +4,7 @@ import PeriodsRepository from '../../../../domain/repositories/periods-repositor
 import { Injectable } from '@nestjs/common';
 import { PrismaBaseRepository } from './prisma-base-repository';
 import { PrismaService } from '../prisma.service';
+import { Period } from '@prisma/client';
 
 @Injectable()
 export class PrismaPeriodsRepository
@@ -20,9 +21,10 @@ export class PrismaPeriodsRepository
     });
   }
 
-  async findActualPeriod(): Promise<PeriodEntity | null> {
+  async findActualPeriod(branchId: string): Promise<PeriodEntity | null> {
     const period = await this.prisma.period.findFirst({
       where: {
+        branchId,
         startDate: {
           lte: new Date(),
         },
@@ -37,5 +39,16 @@ export class PrismaPeriodsRepository
     }
 
     return PrismaPeriodsMapper.toDomain(period);
+  }
+
+  async findPeriods(branchId: string): Promise<Period[]> {
+    return await this.prisma.period.findMany({
+      where: {
+        branchId,
+      },
+      orderBy: {
+        startDate: 'desc',
+      },
+    });
   }
 }

@@ -1,11 +1,17 @@
-import { Controller, Delete, Get, Param } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { ReportsRepository } from '../../../../domain/repositories/reports-repository';
 import { IsPublic } from '../../decorators/is-public.decorator';
+import { PostReportService } from '../../../../domain/services/reports/templates/postReport.service';
+import { UseZodGuard } from 'nestjs-zod';
+import { postReportBodySchema } from '../../dtos/reports/postReportDTO.dto';
 
 @IsPublic()
 @Controller('reports')
 export class ReportsController {
-  constructor(private readonly reportsRepository: ReportsRepository) {}
+  constructor(
+    private readonly PostReportService: PostReportService,
+    private readonly reportsRepository: ReportsRepository,
+  ) {}
 
   @Delete(':id')
   async delete(@Param('id') reportId: string) {
@@ -15,5 +21,22 @@ export class ReportsController {
   @Get('invalid')
   async deleteInvalid() {
     return await this.reportsRepository.deleteInvalidReports();
+  }
+
+  @Post(':reportId')
+  @UseZodGuard('body', postReportBodySchema)
+  async createReport(
+    @Param('reportId') reportId: string,
+    @Body() body: postReportBodySchema,
+  ) {
+    const { periodId, levelId, steps, observation, memberNumber } = body;
+    return await this.PostReportService.handle({
+      levelId,
+      memberNumber,
+      observation,
+      steps,
+      id: reportId,
+      periodId,
+    });
   }
 }

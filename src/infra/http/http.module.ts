@@ -6,6 +6,7 @@ import { LevelModule } from './modules/level.module';
 import { ReportModule } from './modules/report.module';
 import { TeacherModule } from './modules/teacher.module';
 import { BranchModule } from './modules/branch.module';
+import { PeriodModule } from './modules/periods.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { BranchModule } from './modules/branch.module';
     ReportModule,
     TeacherModule,
     BranchModule,
+    PeriodModule,
   ],
   controllers: [CheckController],
   providers: [],

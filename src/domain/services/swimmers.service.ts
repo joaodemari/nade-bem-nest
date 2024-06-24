@@ -43,7 +43,8 @@ export class SwimmersService extends BaseService<
     search,
     teacherNumber,
     onlyActive,
-    branchId
+    branchId,
+    periodStartDate,
   }: ListSwimmersProps): Promise<ListSwimmersResponse> {
     if (!teacherNumber)
       return left(new NoCompleteInformation('teacher number'));
@@ -52,18 +53,17 @@ export class SwimmersService extends BaseService<
     // TODO: Melhorar a performance disso aqui:
     // fazer apenas 1 requisição para a parte de swimmers
     // e não 3 kkkkkkkkkk
-    let [swimmers, period]: [SwimmerEntity[], PeriodEntity] = await Promise.all(
-      [
-        this.repository.findManyByTeacher(teacherNumber, branchId),
-        this.periodsRepository.findActualPeriod(),
-      ],
+    let swimmers: SwimmerEntity[] = await this.repository.findManyByTeacher(
+      teacherNumber,
+      branchId,
     );
 
     console.log('onlyActive', onlyActive);
     if (onlyActive) swimmers = swimmers.filter((s) => s.isActive);
 
+    const startDate = new Date(periodStartDate);
     const swimmersWithoutReports = swimmers.filter(
-      (s) => !s.lastReport || new Date(s.lastReport) < period.startDate,
+      (s) => !s.lastReport || new Date(s.lastReport) < startDate,
     ).length;
 
     const searchNumber = Number(search);
@@ -77,7 +77,6 @@ export class SwimmersService extends BaseService<
       swimmers: swimmersFiltered.slice((page - 1) * perPage, page * perPage),
       numberOfPages: Math.ceil(swimmersFiltered.length / perPage),
       swimmersWithoutReports,
-      period,
     });
   }
 }
