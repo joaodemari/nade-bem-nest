@@ -13,7 +13,6 @@ export class PrismaReportsMapper {
         isAvailable: prismaReport.isAvailable,
         levelId: prismaReport.levelId,
         periodId: prismaReport.periodId,
-        branchId: prismaReport.branchId,
       },
       prismaReport.id,
     );

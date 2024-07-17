@@ -9,7 +9,6 @@ export interface ReportEntityProps {
   isAvailable: boolean;
   levelId: string;
   periodId?: string;
-  branchId: string;
 }
 
 export class ReportEntity extends BaseEntity<ReportEntityProps> {
@@ -79,13 +78,5 @@ export class ReportEntity extends BaseEntity<ReportEntityProps> {
 
   set periodId(value: string) {
     this.props.periodId = value;
-  }
-
-  get branchId(): string {
-    return this.props.branchId;
-  }
-
-  set branchId(value: string) {
-    this.props.branchId = value;
   }
 }

@@ -28,7 +28,6 @@ export const AuthPayloadSchema = z.object({
   email: z.string(),
   role: z.string(),
   branchId: z.string(),
-  branchApiKey: z.string().optional(),
 });
 
 export class AuthPayloadDTO extends createZodDto(AuthPayloadSchema) {}

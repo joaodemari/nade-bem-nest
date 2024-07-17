@@ -14,9 +14,8 @@ model Branch {
   teachers     Teacher[]
   swimmers     Swimmer[]
   levels       Level[]
-  reports      Report[]
-  responsibles Responsible[]
   periods      Period[]
+  users        Auth[]
 }
 
 model Teacher {
@@ -27,10 +26,31 @@ model Teacher {
   photoUrl      String?
   password      String?
   resetToken    String?   @unique
+  auth          Auth? @relation(fields: [authId], references: [id])
+  authId        String? @db.ObjectId @unique
   Report        Report[]
   swimmers      Swimmer[]
   Branch        Branch   @relation(fields: [branchId], references: [id])
   branchId      String   @db.ObjectId
+}
+
+model Auth {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  email     String @unique
+  password  String
+  resetToken String? @unique
+  teacher   Teacher?
+  admin     Admin?
+  role      String
+  name      String
+  Branch        Branch   @relation(fields: [branchId], references: [id])
+  branchId      String   @db.ObjectId
+}
+
+model Admin {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  auth          Auth @relation(fields: [authId], references: [id])
+  authId        String @db.ObjectId @unique
 }
 
 model Period {
@@ -41,16 +61,6 @@ model Period {
   report    Report[]
   Branch    Branch?  @relation(fields: [branchId], references: [id])
   branchId  String?  @db.ObjectId
-}
-
-model Responsible {
-  id         String    @id @default(auto()) @map("_id") @db.ObjectId
-  email      String    @unique
-  password   String?
-  resetToken String?   @unique
-  swimmers   Swimmer[]
-  Branch     Branch?   @relation(fields: [branchId], references: [id])
-  branchId   String?   @db.ObjectId
 }
 
 model Swimmer {
@@ -73,8 +83,6 @@ model Swimmer {
   Teacher       Teacher? @relation(fields: [teacherNumber], references: [teacherNumber])
   teacherNumber Int?
 
-  Responsible   Responsible? @relation(fields: [responsibleId], references: [id])
-  responsibleId String?      @db.ObjectId
   Branch        Branch      @relation(fields: [branchId], references: [id])
   branchId      String      @db.ObjectId
 }
@@ -100,8 +108,6 @@ model Report {
 
   Period   Period? @relation(fields: [periodId], references: [id])
   periodId String? @db.ObjectId
-  Branch   Branch? @relation(fields: [branchId], references: [id])
-  branchId String? @db.ObjectId
 }
 
 model ReportAndSteps {
@@ -139,3 +145,4 @@ model Step {
   areaId         String           @db.ObjectId
   ReportAndSteps ReportAndSteps[]
 }
+

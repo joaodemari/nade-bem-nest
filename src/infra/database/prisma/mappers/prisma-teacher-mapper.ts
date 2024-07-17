@@ -12,6 +12,7 @@ export class PrismaTeachersMapper {
         photoUrl: prismaTeacher.photoUrl ?? null,
         teacherNumber: prismaTeacher.teacherNumber ?? null,
         branchId: prismaTeacher.branchId,
+        authId: prismaTeacher.authId,
       },
       prismaTeacher.id,
     );
@@ -19,9 +20,7 @@ export class PrismaTeachersMapper {
     return teacher;
   }
 
-  static toPersistence(
-    teacher: TeacherEntity,
-  ): Prisma.TeacherUncheckedCreateInput {
+  static toPersistence(teacher: TeacherEntity): Prisma.TeacherCreateInput {
     const prismaTeacher: Prisma.TeacherCreateInput = {
       name: teacher.name,
       email: teacher.email,
@@ -32,6 +31,11 @@ export class PrismaTeachersMapper {
       Branch: {
         connect: {
           id: teacher.branchId,
+        },
+      },
+      auth: {
+        connect: {
+          id: teacher.authId,
         },
       },
     };

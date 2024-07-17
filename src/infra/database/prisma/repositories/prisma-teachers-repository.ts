@@ -5,6 +5,7 @@ import { PrismaTeachersMapper } from '../mappers/prisma-teacher-mapper';
 import { PrismaBaseRepository } from './prisma-base-repository';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
+import { TeachersTableResponseDto } from '../../../http/dtos/teachers/teacherForAdmin/TeachersTableResponse.dto';
 
 @Injectable()
 export class PrismaTeachersRepository
@@ -127,5 +128,42 @@ export class PrismaTeachersRepository
       },
     });
     return token;
+  }
+
+  async getAllByBranchAndInformation(
+    branchId: string,
+    periodId: string,
+  ): Promise<TeachersTableResponseDto> {
+    const teachers = await this.prisma.teacher.findMany({
+      where: {
+        branchId,
+      },
+      include: {
+        swimmers: {
+          include: {
+            Report: {
+              where: {
+                periodId,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const result: TeachersTableResponseDto = {
+      content: teachers.map((teacher) => ({
+        id: teacher.id,
+        teacherNumber: teacher.teacherNumber,
+        name: teacher.name,
+        email: teacher.email,
+        activeSwimmers: teacher.swimmers.filter((s) => s.isActive).length,
+        totalSwimmers: teacher.swimmers.length,
+        totalReports: teacher.swimmers.filter((s) => s.Report.length > 0)
+          .length,
+      })),
+    };
+
+    return result;
   }
 }

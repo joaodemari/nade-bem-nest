@@ -1,5 +1,7 @@
+import { Teacher } from '@prisma/client';
 import { IRepository } from '../../core/generic/I-repository';
 import { TeacherEntity } from '../entities/TeacherEntity';
+import { TeachersTableResponseDto } from '../../infra/http/dtos/teachers/teacherForAdmin/TeachersTableResponse.dto';
 
 export abstract class TeachersRepository extends IRepository<TeacherEntity> {
   abstract generateToken(id: number): Promise<string>;
@@ -25,4 +27,9 @@ export abstract class TeachersRepository extends IRepository<TeacherEntity> {
       reports: number;
     }[]
   >;
+
+  abstract getAllByBranchAndInformation(
+    branchId: string,
+    periodId: string,
+  ): Promise<TeachersTableResponseDto>;
 }

@@ -11,6 +11,7 @@ import { ActionNotAllowed } from '../../core/errors/action-not-allowed-error';
 import { ResourceNotFound } from '../../core/errors/resource-not-found';
 import { Encrypter } from '../criptography/encrypter';
 import toRawString from '../../core/utils/toRawString';
+import { AuthRepository } from '../repositories/auth-repository';
 
 type AuthenticateUserUseCaseRequest = z.infer<typeof authSchema>;
 
@@ -22,7 +23,7 @@ type AuthenticateUserUseCaseResponse = Either<
 @Injectable()
 export class AuthenticationService {
   constructor(
-    private readonly teacherRepository: TeachersRepository,
+    private readonly authRepository: AuthRepository,
     private encrypter: Encrypter,
   ) {}
 
@@ -34,31 +35,33 @@ export class AuthenticationService {
     if (!password) return left(new NoCompleteInformation('user password'));
 
     console.log(email);
-    const { teacher, branchApiKey } = await this.teacherRepository.findByEmail(
+    const { auth, memberNumber } = await this.authRepository.findByEmail(
       toRawString(email),
     );
-    if (!teacher) return left(new ResourceNotFound(email));
-    const isPasswordValid = teacher.password === password;
+    if (!auth) return left(new ResourceNotFound(email));
+    const isPasswordValid = auth.password === password;
     if (!isPasswordValid) {
-      return left(new ActionNotAllowed(teacher.name, 'Wrong password'));
+      return left(new ActionNotAllowed(auth.name, 'Wrong password'));
     }
 
-    const token = await this.encrypter.encrypt({
-      memberNumber: teacher.teacherNumber,
-      role: 'teacher',
-      email: teacher.email,
-      branchId: teacher.branchId,
-      branchApiKey,
-    });
+    const metadata = {
+      memberNumber: memberNumber,
+      role: auth.role,
+      email: auth.email,
+      branchId: auth.branchId,
+      name: auth.name,
+    };
+
+    const token = await this.encrypter.encrypt(metadata);
 
     const response = {
       success: true,
       metadata: {
         token: token,
-        name: teacher.name,
-        email: teacher.email,
-        memberNumber: teacher.teacherNumber,
-        role: 'teacher',
+        name: metadata.name,
+        email: metadata.email,
+        memberNumber: metadata.memberNumber ?? null,
+        role: metadata.role,
       },
     };
 
