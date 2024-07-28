@@ -2,7 +2,6 @@ import {
   AuthResponseDto,
   authSchema,
 } from '../../infra/http/dtos/auth/login.dto';
-import { TeachersRepository } from '../repositories/teachers-repository';
 import { Injectable } from '@nestjs/common';
 import { Either, left, right } from '../../core/types/either';
 import { z } from 'zod';
@@ -35,9 +34,8 @@ export class AuthenticationService {
     if (!password) return left(new NoCompleteInformation('user password'));
 
     console.log(email);
-    const { auth, memberNumber } = await this.authRepository.findByEmail(
-      toRawString(email),
-    );
+    const { auth, memberNumber, branchId } =
+      await this.authRepository.findByEmail(toRawString(email));
     if (!auth) return left(new ResourceNotFound(email));
     const isPasswordValid = auth.password === password;
     if (!isPasswordValid) {
@@ -48,8 +46,9 @@ export class AuthenticationService {
       memberNumber: memberNumber,
       role: auth.role,
       email: auth.email,
-      branchId: auth.branchId,
+      branchId,
       name: auth.name,
+      authId: auth.id,
     };
 
     const token = await this.encrypter.encrypt(metadata);
@@ -62,6 +61,8 @@ export class AuthenticationService {
         email: metadata.email,
         memberNumber: metadata.memberNumber ?? null,
         role: metadata.role,
+        authId: metadata.authId,
+        branchId: metadata.branchId
       },
     };
 

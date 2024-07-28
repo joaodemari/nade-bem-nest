@@ -1,20 +1,14 @@
 import { TeachersRepository } from '../../../../domain/repositories/teachers-repository';
 import { randomUUID } from 'crypto';
-import { TeacherEntity } from '../../../../domain/entities/TeacherEntity';
-import { PrismaTeachersMapper } from '../mappers/prisma-teacher-mapper';
 import { PrismaBaseRepository } from './prisma-base-repository';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { TeachersTableResponseDto } from '../../../http/dtos/teachers/teacherForAdmin/TeachersTableResponse.dto';
+import { Prisma, Teacher } from '@prisma/client';
 
 @Injectable()
-export class PrismaTeachersRepository
-  extends PrismaBaseRepository<TeacherEntity>
-  implements TeachersRepository
-{
-  constructor(prisma: PrismaService) {
-    super(prisma, 'teacher');
-  }
+export class PrismaTeachersRepository implements TeachersRepository {
+  constructor(private readonly prisma: PrismaService) {}
 
   async countReports({
     periodId,
@@ -23,7 +17,9 @@ export class PrismaTeachersRepository
     periodId: string;
     branchId?: string;
   }): Promise<{ teacherId: number; name: string; reports: number }[]> {
-    const where = branchId ? { branchId } : {};
+    const where: Prisma.TeacherWhereInput = branchId
+      ? { branchTeachers: { some: { branchId } } }
+      : {};
 
     const teachers = await this.prisma.teacher.findMany({
       where,
@@ -55,7 +51,7 @@ export class PrismaTeachersRepository
   async checkEmailAndPass(
     email: string,
     password: string,
-  ): Promise<TeacherEntity | null> {
+  ): Promise<Teacher | null> {
     const teacher = await this.prisma.teacher.findFirst({
       where: {
         email,
@@ -67,10 +63,10 @@ export class PrismaTeachersRepository
       return null;
     }
 
-    return PrismaTeachersMapper.toDomain(teacher);
+    return teacher;
   }
 
-  async findByResetToken(token: string): Promise<TeacherEntity | null> {
+  async findByResetToken(token: string): Promise<Teacher | null> {
     const teacher = await this.prisma.teacher.findUnique({
       where: {
         resetToken: token,
@@ -81,18 +77,22 @@ export class PrismaTeachersRepository
       return null;
     }
 
-    return PrismaTeachersMapper.toDomain(teacher);
+    return teacher;
   }
 
   async findByEmail(
     teacherEmail: string,
-  ): Promise<{ teacher: TeacherEntity; branchApiKey: string } | null> {
+  ): Promise<{ teacher: Teacher; branchApiKey: string } | null> {
     const teacher = await this.prisma.teacher.findUnique({
       where: {
         email: teacherEmail,
       },
       include: {
-        Branch: true,
+        branchTeachers: {
+          include: {
+            branch: true,
+          },
+        },
       },
     });
 
@@ -101,8 +101,8 @@ export class PrismaTeachersRepository
     }
 
     return {
-      teacher: PrismaTeachersMapper.toDomain(teacher),
-      branchApiKey: teacher.Branch.apiKey,
+      teacher,
+      branchApiKey: teacher.branchTeachers[0].branch.apiKey,
     };
   }
 
@@ -136,7 +136,11 @@ export class PrismaTeachersRepository
   ): Promise<TeachersTableResponseDto> {
     const teachers = await this.prisma.teacher.findMany({
       where: {
-        branchId,
+        branchTeachers: {
+          some: {
+            branchId,
+          },
+        },
       },
       include: {
         swimmers: {

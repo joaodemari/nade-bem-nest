@@ -1,11 +1,14 @@
 import { Module } from '@nestjs/common';
 import { DatabaseModule } from '../../database/database.module';
 import { BranchController } from '../controllers/teacher/branches.controller';
-import { BranchService } from '../controllers/branch/branch.service';
+import { BranchService } from '../../../domain/services/branch.service';
+import { ChangeBranchService } from '../../../domain/services/authentication/change-branch.service';
+import { CryptographyModule } from '../criptography/cryptography.module';
+import { ChangeBranchController } from '../controllers/authentication/changeBranch.controller';
 
 @Module({
-  imports: [DatabaseModule],
-  controllers: [BranchController],
-  providers: [BranchService],
+  imports: [DatabaseModule, CryptographyModule],
+  controllers: [BranchController, ChangeBranchController],
+  providers: [BranchService, ChangeBranchService],
 })
 export class BranchModule {}

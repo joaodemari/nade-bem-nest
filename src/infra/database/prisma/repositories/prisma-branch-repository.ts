@@ -3,28 +3,30 @@ import { PrismaBaseRepository } from './prisma-base-repository';
 import { PrismaService } from '../prisma.service';
 import { BranchEntity } from '../../../../domain/entities/branch-entity';
 import { BranchRepository } from '../../../../domain/repositories/branches-repository';
-import { PrismaBranchesMapper } from '../mappers/prisma-branch-mapper';
+import { Branch, Prisma } from '@prisma/client';
 
 @Injectable()
-export class PrismaBranchRepository
-  extends PrismaBaseRepository<BranchEntity>
-  implements BranchRepository
-{
-  constructor(prisma: PrismaService) {
-    super(prisma, 'branch');
+export class PrismaBranchRepository implements BranchRepository {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async createBranch(branch: Prisma.BranchCreateInput): Promise<Branch> {
+    const inPrisma = await this.prisma.branch.create({ data: branch });
+    return inPrisma;
   }
 
-  async createBranch(branch: BranchEntity): Promise<BranchEntity> {
-    const data = PrismaBranchesMapper.toPersistence(branch);
-    const inPrisma = await this.prisma.branch.create({ data });
-    return PrismaBranchesMapper.toDomain(inPrisma);
-  }
-
-  async updateBranchSwimmers(branchId: string): Promise<void> {
-    await this.prisma.teacher.updateMany({
-      data: {
-        branchId,
+  async getBranchesByAuthId(authId: string): Promise<Branch[]> {
+    const branches = await this.prisma.branch.findMany({
+      where: {
+        branchTeachers: {
+          some: {
+            teacher: {
+              authId,
+            },
+          },
+        },
       },
     });
+
+    return branches;
   }
 }

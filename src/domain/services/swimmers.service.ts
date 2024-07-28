@@ -66,10 +66,9 @@ export class SwimmersService extends BaseService<
       (s) => !s.lastReport || new Date(s.lastReport) < startDate,
     ).length;
 
-    const searchNumber = Number(search);
 
     const searchFilter = (s: SwimmerEntity) =>
-      s.memberNumber.toString().includes(searchNumber.toString()) ||
+      s.memberNumber.toString().includes(search) ||
       cleanContains({ containsThis: search, thisOne: s.name });
 
     const swimmersFiltered = swimmers.filter((s) => searchFilter(s));

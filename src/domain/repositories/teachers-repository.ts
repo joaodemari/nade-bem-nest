@@ -1,22 +1,21 @@
 import { Teacher } from '@prisma/client';
 import { IRepository } from '../../core/generic/I-repository';
-import { TeacherEntity } from '../entities/TeacherEntity';
 import { TeachersTableResponseDto } from '../../infra/http/dtos/teachers/teacherForAdmin/TeachersTableResponse.dto';
 
-export abstract class TeachersRepository extends IRepository<TeacherEntity> {
+export abstract class TeachersRepository {
   abstract generateToken(id: number): Promise<string>;
   abstract findByEmail(
     teacherEmail: string,
-  ): Promise<{ teacher: TeacherEntity; branchApiKey: string } | null>;
+  ): Promise<{ teacher: Teacher; branchApiKey: string } | null>;
   abstract updatePassword(
     teacherEmail: string,
     newPassword: string,
   ): Promise<void>;
-  abstract findByResetToken(token: string): Promise<TeacherEntity | null>;
+  abstract findByResetToken(token: string): Promise<Teacher | null>;
   abstract checkEmailAndPass(
     email: string,
     password: string,
-  ): Promise<TeacherEntity | null>;
+  ): Promise<Teacher | null>;
   abstract countReports(props: {
     periodId: string;
     branchId?: string;
