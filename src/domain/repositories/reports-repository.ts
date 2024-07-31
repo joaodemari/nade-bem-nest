@@ -27,5 +27,40 @@ export abstract class ReportsRepository extends IRepository<ReportEntity> {
     } & Area)[];
   } | null>;
 
+  abstract findManyBySwimmers(props: {
+    swimmerIds: string[];
+    periodId: string;
+  }): Promise<
+    | ({
+        observation: string;
+        swimmer: Swimmer;
+        teacher: Teacher;
+        period: Period;
+        areas: ({
+          lastReportStepId: string;
+          steps: Step[];
+        } & Area)[];
+      } & Level)[]
+    | null
+  >;
+
+  abstract findManyByTeacher(props: {
+    
+    teacherId: string;
+    periodId: string;
+  }): Promise<
+    | ({
+        observation: string;
+        swimmer: Swimmer;
+        teacher: Teacher;
+        period: Period;
+        areas: ({
+          lastReportStepId: string;
+          steps: Step[];
+        } & Area)[];
+      } & Level)[]
+    | null
+  >;
+
   abstract deleteInvalidReports(): Promise<void>;
 }

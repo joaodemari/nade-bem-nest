@@ -1,13 +1,25 @@
-export default (input?: string) => {
-  input = input ?? "";
+export default (input?: string, numberOfCharactersMaximum?: number) => {
+  input = input ?? '';
 
-  const names = input.split(" ");
+  const names = input.split(' ');
 
-  const trimmedLowerCase = names
+  const capitalizedNames = names
     .map((name) => {
       return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
     })
-    .join(" ");
+    .join(' ');
 
-  return trimmedLowerCase;
+  if (numberOfCharactersMaximum) {
+    let trimmedNames = capitalizedNames;
+    while (trimmedNames.length > numberOfCharactersMaximum) {
+      const lastSpaceIndex = trimmedNames.lastIndexOf(' ');
+      if (lastSpaceIndex === -1) {
+        break; // No more spaces, can't trim further
+      }
+      trimmedNames = trimmedNames.substring(0, lastSpaceIndex);
+    }
+    return trimmedNames;
+  }
+
+  return capitalizedNames;
 };

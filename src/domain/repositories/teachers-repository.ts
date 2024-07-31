@@ -26,6 +26,19 @@ export abstract class TeachersRepository {
       reports: number;
     }[]
   >;
+  // abstract SwimmersIdsByTeacher(props: {
+  //   teacherId: string;
+  //   branchId: string;
+  //   periodId: string;
+  // }): Promise<{
+  //   swimmers: [
+  //     {
+  //       swimmerId: number;
+  //       swimmerName: string;
+  //       swimmerNumber: number;
+  //     },
+  //   ];
+  // }>;
 
   abstract getAllByBranchAndInformation(
     branchId: string,

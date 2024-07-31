@@ -14,6 +14,218 @@ export class PrismaReportsRepository
     super(prisma, 'report');
   }
 
+  async findManyByTeacher({
+    teacherId,
+    periodId,
+  }: {
+    teacherId: string;
+    periodId: string;
+  }): Promise<
+    | ({
+        observation: string;
+        swimmer: Swimmer;
+        teacher: Teacher;
+        period: Period;
+        areas: ({
+          lastReportStepId: string;
+          steps: Step[];
+        } & Area)[];
+      } & Level)[]
+    | null
+  > {
+    try {
+      let reports = await this.prisma.report.findMany({
+        where: {
+          swimmer: {
+            Teacher: {
+              id: teacherId,
+            },
+          },
+          periodId,
+        },
+        orderBy: { createdAt: 'desc' },
+        include: {
+          level: {
+            include: {
+              areas: { include: { steps: { orderBy: { points: 'asc' } } } },
+            },
+          },
+          ReportAndSteps: { include: { step: true } },
+          swimmer: { include: { Teacher: true } },
+          Period: true,
+          teacher: true,
+        },
+      });
+
+      console.log(reports.length);
+
+      let reportsLevelWithSelectedSteps:
+        | ({
+            observation: string;
+            swimmer: Swimmer;
+            teacher: Teacher;
+            period: Period;
+            areas: ({
+              lastReportStepId: string;
+              steps: Step[];
+            } & Area)[];
+          } & Level)[]
+        | null;
+
+      const swimmersLastReports: {
+        [memberNumber: number]: string;
+      } = reports.reduce((acc: { [memberNumber: number]: string }, report) => {
+        if (!acc[report.swimmer.memberNumber]) {
+          acc[report.swimmer.memberNumber] = report.id;
+          return acc;
+        }
+        return acc;
+      }, {});
+
+      reportsLevelWithSelectedSteps = reports
+        .filter((report) => {
+          if (!swimmersLastReports[report.swimmer.memberNumber]) {
+            return false;
+          }
+          if (report.id !== swimmersLastReports[report.swimmer.memberNumber]) {
+            return false;
+          }
+          return true;
+        })
+        .map((report) => {
+          let reportLevel:
+            | ({ areas: ({ steps: Step[] } & Area)[] } & Level)
+            | null;
+          reportLevel = report.level;
+          return {
+            ...reportLevel,
+            period: report.Period,
+            observation: report.observation,
+            swimmer: report.swimmer,
+            teacher: report.swimmer.Teacher,
+            areas: reportLevel.areas.map((area) => {
+              return {
+                ...area,
+                lastReportStepId:
+                  report.ReportAndSteps.find(
+                    (step) => step.step.areaId === area.id,
+                  )?.stepId ?? '',
+              };
+            }),
+          };
+        });
+
+      return reportsLevelWithSelectedSteps;
+    } catch (e) {
+      console.log(e);
+      return null;
+    }
+  }
+
+  async findManyBySwimmers({
+    swimmerIds,
+    periodId,
+  }: {
+    swimmerIds: string[];
+    periodId: string;
+  }): Promise<
+    | ({
+        observation: string;
+        swimmer: Swimmer;
+        teacher: Teacher;
+        period: Period;
+        areas: ({
+          lastReportStepId: string;
+          steps: Step[];
+        } & Area)[];
+      } & Level)[]
+    | null
+  > {
+    try {
+      let report = await this.prisma.report.findMany({
+        where: {
+          swimmer: {
+            id: { in: swimmerIds },
+          },
+          periodId,
+        },
+        orderBy: { createdAt: 'desc' },
+        include: {
+          level: {
+            include: {
+              areas: { include: { steps: { orderBy: { points: 'asc' } } } },
+            },
+          },
+          ReportAndSteps: { include: { step: true } },
+          swimmer: { include: { Teacher: true } },
+          Period: true,
+          teacher: true,
+        },
+      });
+
+      let reportsLevelWithSelectedSteps:
+        | ({
+            observation: string;
+            swimmer: Swimmer;
+            teacher: Teacher;
+            period: Period;
+            areas: ({
+              lastReportStepId: string;
+              steps: Step[];
+            } & Area)[];
+          } & Level)[]
+        | null;
+
+      const swimmersLastReports: {
+        [memberNumber: number]: string;
+      } = report.reduce((acc: { [memberNumber: number]: string }, report) => {
+        if (!acc[report.swimmer.memberNumber]) {
+          acc[report.swimmer.memberNumber] = report.id;
+          return acc;
+        }
+        return acc;
+      }, {});
+
+      reportsLevelWithSelectedSteps = report
+        .filter((report) => {
+          if (!swimmersLastReports[report.swimmer.memberNumber]) {
+            return false;
+          }
+          if (report.id !== swimmersLastReports[report.swimmer.memberNumber]) {
+            return false;
+          }
+          return true;
+        })
+        .map((report) => {
+          let reportLevel:
+            | ({ areas: ({ steps: Step[] } & Area)[] } & Level)
+            | null;
+          reportLevel = report.level;
+          return {
+            ...reportLevel,
+            period: report.Period,
+            observation: report.observation,
+            swimmer: report.swimmer,
+            teacher: report.swimmer.Teacher,
+            areas: reportLevel.areas.map((area) => {
+              return {
+                ...area,
+                lastReportStepId:
+                  report.ReportAndSteps.find(
+                    (step) => step.step.areaId === area.id,
+                  )?.stepId ?? '',
+              };
+            }),
+          };
+        });
+
+      return reportsLevelWithSelectedSteps;
+    } catch (e) {
+      console.log(e);
+      return null;
+    }
+  }
+
   async findReportsAreasStepsTeacherSwimmer(reportId: string): Promise<
     | ({
         observation: string;
@@ -85,7 +297,7 @@ export class PrismaReportsRepository
     const idsToDelete = reports.filter((report) => {
       return report.observation.length < 10;
     });
- 
+
     await this.prisma.reportAndSteps.deleteMany({
       where: {
         reportId: {

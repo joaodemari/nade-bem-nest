@@ -31,4 +31,8 @@ export class TeacherService {
 
     return teachersAndInformation;
   }
+
+  // async SwimmersIdsByTeacher({}:{teacherId: string, branchId: string, periodId: string}): Promise<number[]> {
+  //   return await this.teachersRepository.SwimmersIdsByTeacher({teacherId, branchId, periodId});
+  // }
 }
