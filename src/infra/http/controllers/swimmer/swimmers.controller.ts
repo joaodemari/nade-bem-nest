@@ -38,7 +38,7 @@ export class SwimmersController {
       perPage: +query.perPage,
       onlyActive: query.onlyActive === 'true',
       search: query.search,
-      teacherNumber: user.memberNumber,
+      teacherNumber: user.role == Role.admin ? 8888 : user.memberNumber,
       branchId: user.branchId,
       periodStartDate: query.periodStartDate ?? Date.now().toString(),
     });
