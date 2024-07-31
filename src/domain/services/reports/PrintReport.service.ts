@@ -65,7 +65,7 @@ export class PrintReportService {
     // Dados fictícios
 
     // Adicionando os dados ao PDF
-    doc.fontSize(12).text(`Nome: ${capitalizeName(swimmer.name, 20)}`, 50, 110);
+    doc.fontSize(12).text(`Nome: ${capitalizeName(swimmer.name, 30)}`, 50, 110);
 
     const periodoDe = toBrazilianDate(report.period.startDate);
     const periodoAte = toBrazilianDate(report.period.endDate);
@@ -129,7 +129,7 @@ export class PrintReportService {
     // Dados fictícios
     const coordenador = 'Jovir Demari';
 
-    const professor = `Prof. ${capitalizeName(report.teacher.name, 30)}`;
+    const professor = `Prof. ${capitalizeName(report.teacher.name, 20)}`;
 
     // Adicionando os dados ao PDF
     doc.fontSize(12).text(`Professor(a): ${professor}`, 50, 720);
