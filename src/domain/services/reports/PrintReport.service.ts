@@ -65,10 +65,10 @@ export class PrintReportService {
     // Dados fictícios
 
     // Adicionando os dados ao PDF
-    doc.fontSize(12).text(`Nome: ${capitalizeName(swimmer.name, 30)}`, 50, 110);
+    doc.fontSize(12).text(`Nome: ${capitalizeName(swimmer.name, 20)}`, 50, 110);
 
-    const periodoDe = toBrazilianDate(new Date(2024, 0, 17));
-    const periodoAte = toBrazilianDate(new Date(2024, 4, 16));
+    const periodoDe = toBrazilianDate(report.period.startDate);
+    const periodoAte = toBrazilianDate(report.period.endDate);
     doc.text(`Período de: ${periodoDe} a ${periodoAte}`, docWidth / 2, 110);
 
     const texto = `Este relatório tem como objetivo compartilhar com os pais o progresso de seus filhos na piscina, independentemente da quantidade de aulas frequentadas. Os níveis de habilidade de 1 a 3 indicam a evolução gradual das atividades propostas, com mais por vir nos próximos relatórios. Celebramos juntos cada conquista aquática!`;
