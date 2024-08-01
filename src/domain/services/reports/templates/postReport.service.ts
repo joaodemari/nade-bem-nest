@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../infra/database/prisma/prisma.service';
 import { ResourceNotFound } from '../../../../core/errors/resource-not-found';
-import { Report } from '@prisma/client';
+import { Prisma, Report } from '@prisma/client';
 
 @Injectable()
 export class PostReportService {
@@ -30,7 +30,7 @@ export class PostReportService {
       });
       if (!level) return new ResourceNotFound('Level not found');
 
-      let data = {
+      let data: Prisma.ReportCreateInput = {
         approved,
         ReportAndSteps: {
           create: steps.map((id) => {
@@ -49,10 +49,14 @@ export class PostReportService {
         Period: { connect: { id: periodId } },
       };
       let report: Report;
+
       if (id !== 'new') {
+        await this.prisma.reportAndSteps.deleteMany({
+          where: { reportId: id },
+        });
         report = await this.prisma.report.update({
           data,
-          where: { id, periodId: periodId },
+          where: { id },
         });
         if (!report) return new ResourceNotFound('Report not found');
       } else {
