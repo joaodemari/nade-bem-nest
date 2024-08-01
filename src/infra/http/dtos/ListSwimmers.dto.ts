@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { NoCompleteInformation } from '../../../core/errors/no-complete-information-error';
 import { PeriodEntity } from '../../../domain/entities/PeriodEntity';
 import { SwimmerEntity } from '../../../domain/entities/swimmer-entity';
+import { swimmerAndPeriod } from '../../../domain/services/swimmers.service';
 
 export const isString = (value: unknown): value is string =>
   typeof value === 'string';
@@ -24,7 +25,7 @@ export const ListSwimmersQuerySchema = z.object({
   ),
   search: z.string().default(''),
   onlyActive: z.enum(['true', 'false']).optional().default('false'),
-  periodStartDate: z.string().optional().default(Date.now().toString()),
+  periodId: z.string(),
 });
 
 export class ListSwimmersQueryDTO extends createZodDto(
@@ -38,7 +39,7 @@ export const ListSwimmersPropsSchema = z.object({
   teacherNumber: z.number(),
   onlyActive: z.boolean().default(false),
   branchId: z.string(),
-  periodStartDate: z.string(),
+  periodId: z.string(),
 });
 
 export class ListSwimmersProps extends createZodDto(ListSwimmersPropsSchema) {}
@@ -55,7 +56,7 @@ export class ListSwimmersResponseDTO extends createZodDto(
 ) {}
 
 export type ListSwimmersResponseRight = {
-  swimmers: SwimmerEntity[];
+  swimmers: swimmerAndPeriod[];
   numberOfPages: number;
   swimmersWithoutReports: number;
 };

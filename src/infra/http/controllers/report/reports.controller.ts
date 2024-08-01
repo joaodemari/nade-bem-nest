@@ -1,4 +1,12 @@
-import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  InternalServerErrorException,
+  Param,
+  Post,
+} from '@nestjs/common';
 import { ReportsRepository } from '../../../../domain/repositories/reports-repository';
 import { IsPublic } from '../../decorators/is-public.decorator';
 import { PostReportService } from '../../../../domain/services/reports/templates/postReport.service';
@@ -29,14 +37,19 @@ export class ReportsController {
     @Param('reportId') reportId: string,
     @Body() body: postReportBodySchema,
   ) {
-    const { periodId, levelId, steps, observation, memberNumber } = body;
-    return await this.PostReportService.handle({
-      levelId,
-      memberNumber,
-      observation,
-      steps,
-      id: reportId,
-      periodId,
-    });
+    try {
+      const { periodId, levelId, steps, observation, memberNumber } = body;
+      return await this.PostReportService.handle({
+        levelId,
+        memberNumber,
+        observation,
+        steps,
+        id: reportId,
+        periodId,
+      });
+    } catch (error) {
+      console.log(error);
+      return new InternalServerErrorException('Erro Interno');
+    }
   }
 }

@@ -94,9 +94,10 @@ model Swimmer {
   photoUrl   String?
   lastAccess DateTime
 
-  Report       Report[]
+  Report       Report[] @relation(name: "SwimmerReports")
   lastReport   DateTime?
-  lastReportId String?   @db.ObjectId
+  lastReportId String?   @db.ObjectId @unique
+  lastReportAccess Report? @relation(fields: [lastReportId], references: [id], name: "SwimmerLastReport") 
 
   Teacher       Teacher? @relation(fields: [teacherNumber], references: [teacherNumber])
   teacherNumber Int?
@@ -119,7 +120,9 @@ model Report {
   levelId        String           @db.ObjectId
   ReportAndSteps ReportAndSteps[]
 
-  swimmer   Swimmer? @relation(fields: [idSwimmer], references: [id])
+  SwimmerLastReport Swimmer? @relation(name: "SwimmerLastReport")
+
+  swimmer   Swimmer? @relation(fields: [idSwimmer], references: [id], name: "SwimmerReports", onDelete: NoAction, onUpdate: NoAction)
   idSwimmer String?  @db.ObjectId
   teacher   Teacher? @relation(fields: [idTeacher], references: [id])
   idTeacher String?  @db.ObjectId

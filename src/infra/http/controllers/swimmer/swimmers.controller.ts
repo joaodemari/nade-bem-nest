@@ -40,13 +40,13 @@ export class SwimmersController {
       search: query.search,
       teacherNumber: user.role == Role.admin ? 8888 : user.memberNumber,
       branchId: user.branchId,
-      periodStartDate: query.periodStartDate ?? Date.now().toString(),
+      periodId: query.periodId,
     });
     if (result.isLeft()) {
       throw new BadRequestException(result.value.message);
     }
     return {
-      swimmers: SwimmerPresenter.toHTTP(result.value.swimmers),
+      swimmers: SwimmerPresenter.toHTTPSwimmerAndPeriod(result.value.swimmers),
       numberOfPages: result.value.numberOfPages,
       swimmersWithoutReports: result.value.swimmersWithoutReports,
     };

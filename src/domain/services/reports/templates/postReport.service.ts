@@ -54,6 +54,7 @@ export class PostReportService {
         await this.prisma.reportAndSteps.deleteMany({
           where: { reportId: id },
         });
+
         report = await this.prisma.report.update({
           data,
           where: { id },
@@ -71,12 +72,16 @@ export class PostReportService {
             },
           },
           lastReport: new Date(),
-          lastReportId: report.id,
+          lastReportAccess: {
+            connect: {
+              id: report.id,
+            },
+          },
         },
       });
       return report;
     } catch (e) {
-      console.log(e);
+      console.log('Erro: ', e);
       return e;
     }
   }

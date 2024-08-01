@@ -12,7 +12,14 @@ import { PeriodEntity } from '../entities/PeriodEntity';
 import PeriodsRepository from '../repositories/periods-repository';
 import cleanContains from '../../core/utils/cleanContains';
 import { SwimmerInfoResponse } from '../../infra/http/dtos/swimmers/swimmerInfo.dto';
+import { Report, Swimmer } from '@prisma/client';
 
+export type swimmerAndPeriod = Swimmer & {
+  isFromThisPeriod?: boolean;
+  lastReportPeriodId?: string;
+} & {
+  Report: Report[];
+};
 @Injectable()
 export class SwimmersService extends BaseService<
   SwimmerEntity,
@@ -44,7 +51,7 @@ export class SwimmersService extends BaseService<
     teacherNumber,
     onlyActive,
     branchId,
-    periodStartDate,
+    periodId,
   }: ListSwimmersProps): Promise<ListSwimmersResponse> {
     if (!teacherNumber)
       return left(new NoCompleteInformation('teacher number'));
@@ -53,21 +60,25 @@ export class SwimmersService extends BaseService<
     // TODO: Melhorar a performance disso aqui:
     // fazer apenas 1 requisição para a parte de swimmers
     // e não 3 kkkkkkkkkk
-    let swimmers: SwimmerEntity[] = await this.repository.findManyByTeacher(
+
+    let swimmers: swimmerAndPeriod[] = await this.repository.findManyByTeacher(
       teacherNumber,
       branchId,
     );
 
-    console.log('onlyActive', onlyActive);
     if (onlyActive) swimmers = swimmers.filter((s) => s.isActive);
 
-    const startDate = new Date(periodStartDate);
+    swimmers.map((s) => {
+      s.isFromThisPeriod =
+        s.lastReportPeriodId && s.lastReportPeriodId === periodId;
+      return s;
+    });
+
     const swimmersWithoutReports = swimmers.filter(
-      (s) => !s.lastReport || new Date(s.lastReport) < startDate,
+      (s) => !s.isFromThisPeriod,
     ).length;
 
-
-    const searchFilter = (s: SwimmerEntity) =>
+    const searchFilter = (s: swimmerAndPeriod) =>
       s.memberNumber.toString().includes(search) ||
       cleanContains({ containsThis: search, thisOne: s.name });
 

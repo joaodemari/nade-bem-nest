@@ -52,10 +52,7 @@ export class PrismaSwimmersRepository
     return swimmersCount;
   }
 
-  async findManyByTeacher(
-    teacherNumber: number,
-    branchId: string,
-  ): Promise<SwimmerEntity[]> {
+  async findManyByTeacher(teacherNumber: number, branchId: string) {
     if (!teacherNumber) return [];
 
     const where: Prisma.SwimmerWhereInput =
@@ -75,6 +72,7 @@ export class PrismaSwimmersRepository
       },
       include: {
         Report: { orderBy: { createdAt: 'asc' } },
+        lastReportAccess: true,
       },
     });
 
@@ -93,7 +91,12 @@ export class PrismaSwimmersRepository
     //     return 0;
     // });
 
-    return swimmers.map((swimmer) => PrismaSwimmersMapper.toDomain(swimmer));
+    return swimmers.map((swimmer) => {
+      return {
+        ...swimmer,
+        lastReportPeriodId: swimmer.lastReportAccess?.periodId,
+      };
+    });
   }
 
   async upsertManyFromEvo(swimmersInEvo: SwimmerEvo[]): Promise<void> {
