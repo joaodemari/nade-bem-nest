@@ -6,6 +6,7 @@ import { REFRESH_QUEUE } from '../constants/queue.constants';
 import { EnvService } from '../../../infra/env/env.service';
 import { DatabaseModule } from '../../../infra/database/database.module';
 import { RecieveWebhookController } from '../../webhook/recieve-webhook/recieve-webhook.controller';
+import { EvoIntegrationService } from '../../../domain/services/integration/evoIntegration.service';
 
 @Module({
   imports: [
@@ -15,6 +16,6 @@ import { RecieveWebhookController } from '../../webhook/recieve-webhook/recieve-
     }),
   ],
   controllers: [RefreshSwimmersController, RecieveWebhookController],
-  providers: [EnvService],
+  providers: [EnvService, EvoIntegrationService],
 })
 export class IntegrationModule {}

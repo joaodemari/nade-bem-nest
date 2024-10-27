@@ -1,6 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { NoCompleteInformation } from '../../../../core/errors/no-complete-information-error';
-import { left, right } from '../../../../core/types/either';
 import { LevelsRepository } from '../../../../domain/repositories/levels-repository';
 import { getLevelTemplateResponse } from '../../../../infra/http/dtos/reports/templates/getLevelTemplate.dto';
 
@@ -10,7 +8,7 @@ export class GetLevelTempleteService {
 
   async execute(levelId: string): Promise<getLevelTemplateResponse> {
     if (!levelId) {
-      return left(new NoCompleteInformation('levelId'));
+      throw new Error('Level not found');
     }
     const level = await this.levelRepository.findLevelAndAreasAndSteps(levelId);
 
@@ -21,6 +19,6 @@ export class GetLevelTempleteService {
         lastReportStepId: area.steps[0].id,
       })),
     };
-    return right(response);
+    return response;
   }
 }

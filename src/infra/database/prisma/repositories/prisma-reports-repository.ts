@@ -1,18 +1,11 @@
 import { Area, Level, Period, Step, Swimmer, Teacher } from '@prisma/client';
-import { PrismaBaseRepository } from './prisma-base-repository';
-import { ReportEntity } from '../../../../domain/entities/ReportEntity';
 import { PrismaService } from '../prisma.service';
 import { ReportsRepository } from '../../../../domain/repositories/reports-repository';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
-export class PrismaReportsRepository
-  extends PrismaBaseRepository<ReportEntity>
-  implements ReportsRepository
-{
-  constructor(prisma: PrismaService) {
-    super(prisma, 'report');
-  }
+export class PrismaReportsRepository implements ReportsRepository {
+  constructor(private readonly prisma: PrismaService) {}
 
   async findManyByTeacher({
     teacherId,

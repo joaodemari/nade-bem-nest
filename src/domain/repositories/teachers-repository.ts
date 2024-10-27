@@ -1,5 +1,4 @@
 import { Teacher } from '@prisma/client';
-import { IRepository } from '../../core/generic/I-repository';
 import { TeachersTableResponseDto } from '../../infra/http/dtos/teachers/teacherForAdmin/TeachersTableResponse.dto';
 
 export abstract class TeachersRepository {

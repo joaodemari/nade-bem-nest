@@ -1,7 +1,7 @@
-import { PeriodEntity } from '../../domain/entities/PeriodEntity';
+import { Period } from '@prisma/client';
 
 export class PeriodPresenter {
-  static toHTTP(period: PeriodEntity | PeriodEntity[] | null) {
+  static toHTTP(period: Period | Period[] | null) {
     if (!period) return null;
     if (period instanceof Array) {
       return period.map((period) => {

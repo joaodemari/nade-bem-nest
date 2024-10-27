@@ -5,10 +5,12 @@ import {
   Param,
   Query,
   BadRequestException,
+  Put,
 } from '@nestjs/common';
-import { SwimmerEntity } from '../../../../domain/entities/swimmer-entity';
 import { SwimmersService } from '../../../../domain/services/swimmers.service';
 import {
+  ListAllSwimmersQueryDTO,
+  ListAllSwimmersQuerySchema,
   ListSwimmersQueryDTO,
   ListSwimmersQuerySchema,
 } from '../../dtos/ListSwimmers.dto';
@@ -29,27 +31,87 @@ export class SwimmersController {
   @Get()
   @Roles(Role.teacher)
   @UseZodGuard('query', ListSwimmersQuerySchema)
-  async findAll(
+  async findAllOfTeacher(
     @Query() query: ListSwimmersQueryDTO,
     @CurrentUser() user: AuthPayloadDTO,
   ) {
-    const result = await this.swimmerService.listByTeacherPaginated({
-      page: +query.page,
-      perPage: +query.perPage,
-      onlyActive: query.onlyActive === 'true',
-      search: query.search,
-      teacherNumber: user.role == Role.admin ? 8888 : user.memberNumber,
-      branchId: user.branchId,
-      periodId: query.periodId,
-    });
-    if (result.isLeft()) {
-      throw new BadRequestException(result.value.message);
+    try {
+      const result = await this.swimmerService.listByTeacherPaginated({
+        page: +query.page,
+        perPage: +query.perPage,
+        onlyActive: query.onlyActive === 'true',
+        search: query.search,
+        teacherNumber: user.role == Role.admin ? 8888 : user.memberNumber,
+        branchId: user.branchId,
+        periodId: query.periodId,
+      });
+      return {
+        swimmers: SwimmerPresenter.toHTTPSwimmerAndPeriod(result.swimmers),
+        numberOfPages: result.numberOfPages,
+        swimmersWithoutReports: result.swimmersWithoutReports,
+      };
+    } catch (error) {
+      throw new BadRequestException(error.message);
     }
-    return {
-      swimmers: SwimmerPresenter.toHTTPSwimmerAndPeriod(result.value.swimmers),
-      numberOfPages: result.value.numberOfPages,
-      swimmersWithoutReports: result.value.swimmersWithoutReports,
-    };
+  }
+
+  @Put(':swimmerId/teacher/:teacherId')
+  @Roles(Role.teacher)
+  async updateTeacher(
+    @Param('swimmerId') swimmerId: string,
+    @Param('teacherId') teacherId: string,
+    @CurrentUser() user: AuthPayloadDTO,
+  ) {
+    if (Number.isNaN(swimmerId)) throw new BadRequestException('Invalid id');
+
+    const result = await this.swimmerService.updateSwimmerTeacher({
+      swimmerNumber: +swimmerId,
+      teacherNumber: +teacherId,
+      branchId: user.branchId,
+    });
+
+    return 'ok';
+  }
+
+  @Put(':swimmerId/remove-teacher')
+  @Roles(Role.teacher)
+  async removeSwimmer(
+    @Param('swimmerId') swimmerId: string,
+    @CurrentUser() user: AuthPayloadDTO,
+  ) {
+    if (Number.isNaN(swimmerId) || !swimmerId)
+      throw new BadRequestException('Invalid id');
+
+    const result = await this.swimmerService.RemoveSwimmerFromTeacher({
+      swimmerNumber: +swimmerId,
+      branchId: user.branchId,
+    });
+
+    return result;
+  }
+
+  @Get('/all')
+  @Roles(Role.teacher)
+  @UseZodGuard('query', ListAllSwimmersQuerySchema)
+  async findAllOfBranch(
+    @Query() query: ListAllSwimmersQueryDTO,
+    @CurrentUser() user: AuthPayloadDTO,
+  ) {
+    try {
+      const result = await this.swimmerService.listAllPaginated({
+        page: +query.page,
+        perPage: +query.perPage,
+        onlyActive: query.onlyActive === 'true',
+        search: query.search,
+        branchId: user.branchId,
+      });
+      return {
+        swimmers: SwimmerPresenter.toHTTP(result.swimmers),
+        numberOfPages: result.numberOfPages,
+      };
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
   }
 
   @Get(':id')
@@ -81,10 +143,5 @@ export class SwimmersController {
     } catch (e) {
       throw new BadRequestException(e.message);
     }
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string): Promise<void | boolean | SwimmerEntity> {
-    return this.swimmerService.delete(id);
   }
 }

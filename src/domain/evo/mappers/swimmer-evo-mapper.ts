@@ -1,17 +1,29 @@
-import { SwimmerEntity } from '../../entities/swimmer-entity';
+import { Prisma } from '@prisma/client';
 import { SwimmerEvo } from '../entities/swimmer-evo-entity';
 
 export class SwimmerEvoMapper {
-  static toDomain(swimmerEvo: SwimmerEvo) {
-    return SwimmerEntity.create({
-      actualLevelName: 'Lambari',
+  static toPersistence(swimmerEvo: SwimmerEvo): Prisma.SwimmerCreateInput {
+    return {
+      actualLevel: {
+        connect: {
+          name: 'Lambari',
+        },
+      },
       isActive: !swimmerEvo.accessBlocked,
       lastAccess: swimmerEvo.lastAccessDate,
       memberNumber: swimmerEvo.idMember,
       name: swimmerEvo.firstName + ' ' + swimmerEvo.lastName,
       photoUrl: swimmerEvo.photoUrl,
-      teacherNumber: swimmerEvo.idEmployeeInstructor,
-      branchId: swimmerEvo.branchId,
-    });
+      Teacher: {
+        connect: {
+          teacherNumber: swimmerEvo.idEmployeeInstructor,
+        },
+      },
+      Branch: {
+        connect: {
+          id: swimmerEvo.branchId,
+        },
+      },
+    };
   }
 }

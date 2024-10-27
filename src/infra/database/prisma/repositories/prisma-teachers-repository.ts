@@ -1,6 +1,5 @@
 import { TeachersRepository } from '../../../../domain/repositories/teachers-repository';
 import { randomUUID } from 'crypto';
-import { PrismaBaseRepository } from './prisma-base-repository';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { TeachersTableResponseDto } from '../../../http/dtos/teachers/teacherForAdmin/TeachersTableResponse.dto';

@@ -1,10 +1,8 @@
-import { Period } from '@prisma/client';
-import { IRepository } from '../../core/generic/I-repository';
-import { PeriodEntity } from '../entities/PeriodEntity';
+import { Period, Prisma } from '@prisma/client';
 
-abstract class PeriodsRepository extends IRepository<PeriodEntity> {
-  abstract create(period: PeriodEntity): Promise<void>;
-  abstract findActualPeriod(branchId: string): Promise<PeriodEntity | null>;
+abstract class PeriodsRepository {
+  abstract create(period: Prisma.PeriodCreateInput): Promise<void>;
+  abstract findActualPeriod(branchId: string): Promise<Period | null>;
   abstract findPeriods(branchId: string): Promise<Period[]>;
 }
 

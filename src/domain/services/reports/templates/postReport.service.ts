@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../infra/database/prisma/prisma.service';
-import { ResourceNotFound } from '../../../../core/errors/resource-not-found';
 import { Prisma, Report } from '@prisma/client';
 
 @Injectable()
@@ -14,7 +13,7 @@ export class PostReportService {
     memberNumber: number;
     id: string;
     periodId: string;
-  }): Promise<Report | ResourceNotFound> {
+  }): Promise<Report> {
     try {
       const { periodId, levelId, steps, observation, memberNumber, id } = props;
       const level = await this.prisma.level.findFirst({
@@ -28,7 +27,13 @@ export class PostReportService {
           ?.steps.find((s) => s.id === stepId);
         return step?.points === 3;
       });
-      if (!level) return new ResourceNotFound('Level not found');
+
+      if (!level) throw new Error('Level not found');
+
+      const teacherNumber = await this.prisma.swimmer.findFirst({
+        where: { memberNumber },
+        select: { teacherNumber: true },
+      });
 
       let data: Prisma.ReportCreateInput = {
         approved,
@@ -47,6 +52,7 @@ export class PostReportService {
         observation,
         swimmer: { connect: { memberNumber } },
         Period: { connect: { id: periodId } },
+        teacher: { connect: { teacherNumber: teacherNumber?.teacherNumber } },
       };
       let report: Report;
 
@@ -59,7 +65,7 @@ export class PostReportService {
           data,
           where: { id },
         });
-        if (!report) return new ResourceNotFound('Report not found');
+        if (!report) throw new Error('Report not found');
       } else {
         report = await this.prisma.report.create({ data });
       }

@@ -1,8 +1,8 @@
-import { SwimmerEntity } from '../../domain/entities/swimmer-entity';
+import { Swimmer } from '@prisma/client';
 import { swimmerAndPeriod } from '../../domain/services/swimmers.service';
 
 export class SwimmerPresenter {
-  static toHTTP(swimmer: SwimmerEntity | SwimmerEntity[] | null) {
+  static toHTTP(swimmer: Swimmer | Swimmer[] | null) {
     if (!swimmer) return null;
     if (swimmer instanceof Array) {
       return swimmer.map((swimmer) => {

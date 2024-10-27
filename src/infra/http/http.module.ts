@@ -7,6 +7,7 @@ import { ReportModule } from './modules/report.module';
 import { TeacherModule } from './modules/teacher.module';
 import { BranchModule } from './modules/branch.module';
 import { PeriodModule } from './modules/periods.module';
+import { SwimmerModule } from './modules/swimmer.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { PeriodModule } from './modules/periods.module';
     TeacherModule,
     BranchModule,
     PeriodModule,
+    SwimmerModule,
   ],
   controllers: [CheckController],
   providers: [],

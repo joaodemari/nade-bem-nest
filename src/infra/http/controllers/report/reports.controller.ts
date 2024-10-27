@@ -21,11 +21,6 @@ export class ReportsController {
     private readonly reportsRepository: ReportsRepository,
   ) {}
 
-  @Delete(':id')
-  async delete(@Param('id') reportId: string) {
-    return await this.reportsRepository.delete(reportId);
-  }
-
   @Get('invalid')
   async deleteInvalid() {
     return await this.reportsRepository.deleteInvalidReports();

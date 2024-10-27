@@ -22,13 +22,7 @@ export class GetTemplateReportBySwimmerController {
       const reportId = id == 'no-report' ? null : id;
       const report = await this.getTemplateReportBySwimmer.execute(reportId);
 
-      if (report.isLeft()) {
-        throw new BadRequestException(report.value);
-      }
-      if (!report.value) {
-        throw new BadRequestException('Report not found');
-      }
-      return report.value;
+      return report;
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException(

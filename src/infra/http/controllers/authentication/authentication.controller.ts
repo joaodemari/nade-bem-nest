@@ -5,7 +5,6 @@ import {
   Post,
   UnauthorizedException,
 } from '@nestjs/common';
-import { ActionNotAllowed } from '../../../../core/errors/action-not-allowed-error';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { AuthenticationService } from '../../../../domain/services/authentication.service';
 import {
@@ -21,18 +20,12 @@ export class AuthenticationController {
 
   @Post()
   async login(@Body() login: AuthDTO): Promise<AuthResponseDto> {
-    const result = await this.AuthenticationService.execute(login);
-    if (result.isLeft()) {
-      const error = result.value;
+    try {
+      const result = await this.AuthenticationService.execute(login);
 
-      switch (error.constructor) {
-        case ActionNotAllowed:
-          throw new UnauthorizedException(error.message);
-        default:
-          throw new BadRequestException(error.message);
-      }
+      return result;
+    } catch (error) {
+      throw new BadRequestException(error.message);
     }
-
-    return result.value;
   }
 }

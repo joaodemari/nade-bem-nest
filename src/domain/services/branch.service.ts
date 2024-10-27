@@ -1,6 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { BaseService } from '../../core/generic/base-service';
-import { BranchEntity } from '../entities/branch-entity';
 import { BranchRepository } from '../repositories/branches-repository';
 import { CreateBranchDto } from '../../infra/http/dtos/branch/createBranch.dto';
 

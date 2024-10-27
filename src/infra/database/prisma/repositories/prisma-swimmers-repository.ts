@@ -1,30 +1,36 @@
 import { SwimmersRepository } from '../../../../domain/repositories/swimmers-repository';
 import { SwimmerEvo } from '../../../../domain/evo/entities/swimmer-evo-entity';
 import { SwimmerEvoMapper } from '../../../../domain/evo/mappers/swimmer-evo-mapper';
-import { PrismaSwimmersMapper } from '../mappers/prisma-swimmers-mapper';
-import { SwimmerEntity } from '../../../../domain/entities/swimmer-entity';
-import { PrismaBaseRepository } from './prisma-base-repository';
 import { PrismaService } from '../prisma.service';
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma, Swimmer } from '@prisma/client';
 import PeriodsRepository from '../../../../domain/repositories/periods-repository';
 import { SwimmerInfoResponse } from '../../../http/dtos/swimmers/swimmerInfo.dto';
 import axios from 'axios';
-import { ConfigService } from '@nestjs/config';
 import { EnvService } from '../../../env/env.service';
 import capitalizeName from '../../../../core/utils/capitalizeName';
+import { ListAllSwimmersProps } from '../../../http/dtos/ListSwimmers.dto';
 
 @Injectable()
-export class PrismaSwimmersRepository
-  extends PrismaBaseRepository<SwimmerEntity>
-  implements SwimmersRepository
-{
+export class PrismaSwimmersRepository implements SwimmersRepository {
   constructor(
-    prisma: PrismaService,
+    private readonly prisma: PrismaService,
     private readonly periodsRepository: PeriodsRepository,
     private readonly env: EnvService,
-  ) {
-    super(prisma, 'swimmer');
+  ) {}
+
+  async updateSwimmerTeacher(
+    swimmerNumber: number,
+    teacherNumber: number,
+  ): Promise<void> {
+    await this.prisma.swimmer.update({
+      where: {
+        memberNumber: swimmerNumber,
+      },
+      data: {
+        teacherNumber,
+      },
+    });
   }
 
   async countSwimmers(teacherNumber: number): Promise<number> {
@@ -51,6 +57,20 @@ export class PrismaSwimmersRepository
 
     return swimmersCount;
   }
+
+  findInfoToUpdateSwimmerTeacher = async (swimmerId: string) => {
+    const swimmer = await this.prisma.swimmer.findFirst({
+      where: {
+        id: swimmerId,
+      },
+      select: {
+        memberNumber: true,
+        teacherNumber: true,
+      },
+    });
+
+    return swimmer;
+  };
 
   async findManyByTeacher(teacherNumber: number, branchId: string) {
     if (!teacherNumber) return [];
@@ -99,13 +119,61 @@ export class PrismaSwimmersRepository
     });
   }
 
+  async findManyPaginated({
+    branchId,
+    page,
+    perPage,
+    search,
+  }: ListAllSwimmersProps): Promise<{
+    swimmers: Swimmer[];
+    totalSwimmers: number;
+  }> {
+    const where: Prisma.SwimmerWhereInput = {
+      branchId,
+    };
+
+    if (Number.isNaN(parseInt(search))) {
+      where.name = {
+        contains: search,
+        mode: 'insensitive',
+      };
+    } else {
+      where.memberNumber = parseInt(search);
+    }
+    const swimmers = await this.prisma.swimmer.findMany({
+      where,
+      skip: (page - 1) * perPage,
+      take: perPage,
+    });
+
+    const swimmersCount = await this.prisma.swimmer.count({
+      where,
+    });
+
+    // swimmers = swimmers.sort((a, b) => {
+    //     const aLastReport = a.lastReport ?? new Date();
+    //     const bLastReport = b.lastReport ?? new Date();
+
+    //     console.log("aLastReport", aLastReport);
+    //     console.log("bLastReport", bLastReport);
+    //     if (aLastReport > bLastReport) {
+    //         return -1;
+    //     }
+    //     if (aLastReport < bLastReport) {
+    //         return 1;
+    //     }
+    //     return 0;
+    // });
+
+    return { swimmers, totalSwimmers: swimmersCount };
+  }
+
   async upsertManyFromEvo(swimmersInEvo: SwimmerEvo[]): Promise<void> {
     if (swimmersInEvo.length === 0) return;
 
     await Promise.all(
       swimmersInEvo.map(async (swimmer) => {
-        const SwimmerEntity = SwimmerEvoMapper.toDomain(swimmer);
-        const data = PrismaSwimmersMapper.toPersistence(SwimmerEntity);
+        const data = SwimmerEvoMapper.toPersistence(swimmer);
         await this.prisma.swimmer
           .upsert({
             where: {
@@ -121,9 +189,8 @@ export class PrismaSwimmersRepository
     );
   }
 
-  async upsertOneFromEvo(swimmer: SwimmerEvo): Promise<SwimmerEntity | null> {
-    const SwimmerEntity = SwimmerEvoMapper.toDomain(swimmer);
-    const data = PrismaSwimmersMapper.toPersistence(SwimmerEntity);
+  async upsertOneFromEvo(swimmer: SwimmerEvo): Promise<Swimmer | null> {
+    const data = SwimmerEvoMapper.toPersistence(swimmer);
     return this.prisma.swimmer
       .upsert({
         where: {
@@ -175,7 +242,7 @@ export class PrismaSwimmersRepository
       return null;
     }
 
-    return PrismaSwimmersMapper.toDomain(swimmer);
+    return swimmer;
   }
 
   async findSwimmerAndReports(idMember: number) {

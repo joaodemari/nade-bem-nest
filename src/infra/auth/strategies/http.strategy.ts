@@ -16,7 +16,7 @@ export class HttpStrategy extends PassportStrategy(BasicStrategy) {
     });
 
     return {
-      user: user.value,
+      user: user,
     };
   }
 }

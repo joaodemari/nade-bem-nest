@@ -1,12 +1,9 @@
 import { createZodDto } from 'nestjs-zod';
-import { Either } from '../../../core/types/either';
 import { swimmerSchema } from './swimmers/swimmer.dto';
 import { periodSchema } from './periods/period.dto';
 import { z } from 'zod';
-import { NoCompleteInformation } from '../../../core/errors/no-complete-information-error';
-import { PeriodEntity } from '../../../domain/entities/PeriodEntity';
-import { SwimmerEntity } from '../../../domain/entities/swimmer-entity';
 import { swimmerAndPeriod } from '../../../domain/services/swimmers.service';
+import { Swimmer } from '@prisma/client';
 
 export const isString = (value: unknown): value is string =>
   typeof value === 'string';
@@ -61,7 +58,38 @@ export type ListSwimmersResponseRight = {
   swimmersWithoutReports: number;
 };
 
-export type ListSwimmersResponse = Either<
-  NoCompleteInformation,
-  ListSwimmersResponseRight
->;
+// ALL SWIMMERS
+
+export const ListAllSwimmersQuerySchema = z.object({
+  page: z.preprocess(
+    (value) => (isString(value) ? parseInt(value) : value),
+    z.number(),
+  ),
+  perPage: z.preprocess(
+    (value) => (isString(value) ? parseInt(value) : value),
+    z.number(),
+  ),
+  search: z.string().default(''),
+  onlyActive: z.enum(['true', 'false']).optional().default('false'),
+});
+
+export class ListAllSwimmersQueryDTO extends createZodDto(
+  ListAllSwimmersQuerySchema,
+) {}
+
+export const ListAllSwimmersPropsSchema = z.object({
+  page: z.number().positive().default(1),
+  perPage: z.number().positive().default(12),
+  search: z.string().default(''),
+  onlyActive: z.boolean().default(false),
+  branchId: z.string(),
+});
+
+export class ListAllSwimmersProps extends createZodDto(
+  ListAllSwimmersPropsSchema,
+) {}
+
+export type ListAllSwimmersResponseRight = {
+  swimmers: Swimmer[];
+  numberOfPages: number;
+};

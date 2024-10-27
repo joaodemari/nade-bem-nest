@@ -10,6 +10,6 @@ export class GetTemplateReportByLevelController {
   @Get('/level/:level')
   async handle(@Param('level') level: string) {
     const response = await this.getLevelTemplateService.execute(level);
-    return response.value;
+    return response;
   }
 }

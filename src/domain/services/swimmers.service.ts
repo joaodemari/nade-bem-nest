@@ -1,18 +1,18 @@
-import { BaseService } from '../../core/generic/base-service';
-import { SwimmerEntity } from '../entities/swimmer-entity';
 import { SwimmersRepository } from '../repositories/swimmers-repository';
 import { Injectable } from '@nestjs/common';
 import {
+  ListAllSwimmersProps,
+  ListAllSwimmersResponseRight,
   ListSwimmersProps,
-  ListSwimmersResponse,
+  ListSwimmersResponseRight,
 } from '../../infra/http/dtos/ListSwimmers.dto';
-import { NoCompleteInformation } from '../../core/errors/no-complete-information-error';
-import { left, right } from '../../core/types/either';
-import { PeriodEntity } from '../entities/PeriodEntity';
 import PeriodsRepository from '../repositories/periods-repository';
 import cleanContains from '../../core/utils/cleanContains';
 import { SwimmerInfoResponse } from '../../infra/http/dtos/swimmers/swimmerInfo.dto';
 import { Report, Swimmer } from '@prisma/client';
+import { UpdateSwimmerTeacherProps } from '../../infra/http/dtos/swimmers/updateSwimmer/updateSwimmerTeacher.dto';
+import { BranchRepository } from '../repositories/branches-repository';
+import { EvoIntegrationService } from './integration/evoIntegration.service';
 
 export type swimmerAndPeriod = Swimmer & {
   isFromThisPeriod?: boolean;
@@ -21,16 +21,13 @@ export type swimmerAndPeriod = Swimmer & {
   Report: Report[];
 };
 @Injectable()
-export class SwimmersService extends BaseService<
-  SwimmerEntity,
-  SwimmersRepository
-> {
+export class SwimmersService {
   constructor(
-    repository: SwimmersRepository,
+    private readonly repository: SwimmersRepository,
     private readonly periodsRepository: PeriodsRepository,
-  ) {
-    super(repository);
-  }
+    private readonly branchRepository: BranchRepository,
+    private readonly evoIntegrationService: EvoIntegrationService,
+  ) {}
 
   async findSwimmerInfo(
     memberNumber: number,
@@ -44,6 +41,87 @@ export class SwimmersService extends BaseService<
     return result;
   }
 
+  async RemoveSwimmerFromTeacher(props: {
+    swimmerNumber: number;
+    branchId: string;
+  }) {
+    const defaultTeacherNumber = await this.branchRepository.getDefaultTeacher(
+      props.branchId,
+    );
+
+    await this.updateSwimmerTeacher({
+      swimmerNumber: props.swimmerNumber,
+      teacherNumber: defaultTeacherNumber,
+      branchId: props.branchId,
+    });
+  }
+
+  async updateSwimmerTeacher(props: UpdateSwimmerTeacherProps) {
+    const { swimmerNumber, teacherNumber, branchId } = props;
+    const branchToken = await this.branchRepository.getBranchToken(branchId);
+
+    console.log(branchToken);
+    const swimmerInformation =
+      await this.evoIntegrationService.getSwimmerInformationToTransfer(
+        swimmerNumber,
+        branchToken,
+      );
+
+    console.log(swimmerInformation);
+
+    const swimmerTransfer =
+      await this.evoIntegrationService.transferSwimmerToTeacher({
+        IdCliente: swimmerNumber,
+        IdProfessorDestino: teacherNumber,
+        IdBranchToken: branchToken,
+        IdConsultorDestino: swimmerInformation.idConsultor,
+        IdFilialDestino: swimmerInformation.idFilial,
+      });
+
+    if (!swimmerTransfer) {
+      throw new Error('Erro ao transferir aluno');
+    }
+
+    await this.repository.updateSwimmerTeacher(swimmerNumber, teacherNumber);
+
+    return true;
+  }
+
+  async listAllPaginated({
+    page,
+    perPage,
+    search,
+    onlyActive,
+    branchId,
+  }: ListAllSwimmersProps): Promise<ListAllSwimmersResponseRight> {
+    if (page < 1) page = 1;
+
+    // TODO: Melhorar a performance disso aqui:
+    // fazer apenas 1 requisição para a parte de swimmers
+    // e não 3 kkkkkkkkkk
+
+    const swimmers: { swimmers: Swimmer[]; totalSwimmers: number } =
+      await this.repository.findManyPaginated({
+        branchId,
+        onlyActive,
+        search,
+        page,
+        perPage,
+      });
+
+    // if (onlyActive) swimmers = swimmers.filter((s) => s.isActive);
+
+    // const searchFilter = (s: swimmerAndPeriod) =>
+    //   s.memberNumber.toString().includes(search) ||
+    //   cleanContains({ containsThis: search, thisOne: s.name });
+
+    // const swimmersFiltered = swimmers.filter((s) => searchFilter(s));
+    return {
+      swimmers: swimmers.swimmers,
+      numberOfPages: Math.ceil(swimmers.totalSwimmers / perPage),
+    };
+  }
+
   async listByTeacherPaginated({
     page,
     perPage,
@@ -52,9 +130,9 @@ export class SwimmersService extends BaseService<
     onlyActive,
     branchId,
     periodId,
-  }: ListSwimmersProps): Promise<ListSwimmersResponse> {
+  }: ListSwimmersProps): Promise<ListSwimmersResponseRight> {
     if (!teacherNumber)
-      return left(new NoCompleteInformation('teacher number'));
+      throw new Error('Teacher number is required to list swimmers');
     if (page < 1) page = 1;
 
     // TODO: Melhorar a performance disso aqui:
@@ -83,10 +161,10 @@ export class SwimmersService extends BaseService<
       cleanContains({ containsThis: search, thisOne: s.name });
 
     const swimmersFiltered = swimmers.filter((s) => searchFilter(s));
-    return right({
+    return {
       swimmers: swimmersFiltered.slice((page - 1) * perPage, page * perPage),
       numberOfPages: Math.ceil(swimmersFiltered.length / perPage),
       swimmersWithoutReports,
-    });
+    };
   }
 }

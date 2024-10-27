@@ -1,27 +1,19 @@
-import { PeriodEntity } from '../../../../domain/entities/PeriodEntity';
-import { PrismaPeriodsMapper } from '../mappers/prisma-period-mapper';
 import PeriodsRepository from '../../../../domain/repositories/periods-repository';
 import { Injectable } from '@nestjs/common';
-import { PrismaBaseRepository } from './prisma-base-repository';
 import { PrismaService } from '../prisma.service';
-import { Period } from '@prisma/client';
+import { Period, Prisma } from '@prisma/client';
 
 @Injectable()
-export class PrismaPeriodsRepository
-  extends PrismaBaseRepository<PeriodEntity>
-  implements PeriodsRepository
-{
-  constructor(prisma: PrismaService) {
-    super(prisma, 'period');
-  }
+export class PrismaPeriodsRepository implements PeriodsRepository {
+  constructor(private readonly prisma: PrismaService) {}
 
-  async create(period: PeriodEntity): Promise<void> {
+  async create(period: Prisma.PeriodCreateInput): Promise<void> {
     await this.prisma.period.create({
-      data: PrismaPeriodsMapper.toPersistence(period),
+      data: period,
     });
   }
 
-  async findActualPeriod(branchId: string): Promise<PeriodEntity | null> {
+  async findActualPeriod(branchId: string): Promise<Period | null> {
     const period = await this.prisma.period.findFirst({
       where: {
         branchId,
@@ -38,7 +30,7 @@ export class PrismaPeriodsRepository
       return null;
     }
 
-    return PrismaPeriodsMapper.toDomain(period);
+    return period;
   }
 
   async findPeriods(branchId: string): Promise<Period[]> {

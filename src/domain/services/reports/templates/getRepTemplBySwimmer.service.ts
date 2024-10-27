@@ -1,9 +1,8 @@
 import { Step, Area, Level } from '@prisma/client';
-import { right } from '../../../../core/types/either';
 import { LevelsRepository } from '../../../../domain/repositories/levels-repository';
 import { ReportsRepository } from '../../../../domain/repositories/reports-repository';
-import { getLevelTemplateResponse } from '../../../../infra/http/dtos/reports/templates/getLevelTemplate.dto';
 import { Injectable } from '@nestjs/common';
+import { getLevelTemplateResponse } from '../../../../infra/http/dtos/reports/templates/getLevelTemplate.dto';
 
 @Injectable()
 export class GetRepTemplBySwimmerService {
@@ -33,7 +32,7 @@ export class GetRepTemplBySwimmerService {
           steps: area.steps,
         })),
       };
-      return right(reportLevelWithSelectedSteps);
+      return reportLevelWithSelectedSteps;
     }
 
     const lastReport =
@@ -57,6 +56,6 @@ export class GetRepTemplBySwimmerService {
       })),
     };
 
-    return right(reportLevelWithSelectedSteps);
+    return reportLevelWithSelectedSteps;
   }
 }

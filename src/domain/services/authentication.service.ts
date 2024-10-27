@@ -3,21 +3,14 @@ import {
   authSchema,
 } from '../../infra/http/dtos/auth/login.dto';
 import { Injectable } from '@nestjs/common';
-import { Either, left, right } from '../../core/types/either';
 import { z } from 'zod';
-import { NoCompleteInformation } from '../../core/errors/no-complete-information-error';
-import { ActionNotAllowed } from '../../core/errors/action-not-allowed-error';
-import { ResourceNotFound } from '../../core/errors/resource-not-found';
 import { Encrypter } from '../criptography/encrypter';
 import toRawString from '../../core/utils/toRawString';
 import { AuthRepository } from '../repositories/auth-repository';
 
 type AuthenticateUserUseCaseRequest = z.infer<typeof authSchema>;
 
-type AuthenticateUserUseCaseResponse = Either<
-  ActionNotAllowed,
-  AuthResponseDto
->;
+type AuthenticateUserUseCaseResponse = AuthResponseDto;
 
 @Injectable()
 export class AuthenticationService {
@@ -30,16 +23,16 @@ export class AuthenticationService {
     email,
     password,
   }: AuthenticateUserUseCaseRequest): Promise<AuthenticateUserUseCaseResponse> {
-    if (!email) return left(new NoCompleteInformation('user email'));
-    if (!password) return left(new NoCompleteInformation('user password'));
+    if (!email) throw new Error('Email not found');
+    if (!password) throw new Error('Password not found');
 
     console.log(email);
     const { auth, memberNumber, branchId } =
       await this.authRepository.findByEmail(toRawString(email));
-    if (!auth) return left(new ResourceNotFound(email));
+    if (!auth) throw new Error('User not found');
     const isPasswordValid = auth.password === password;
     if (!isPasswordValid) {
-      return left(new ActionNotAllowed(auth.name, 'Wrong password'));
+      throw new Error('Password is incorrect');
     }
 
     const metadata = {
@@ -62,13 +55,13 @@ export class AuthenticationService {
         memberNumber: metadata.memberNumber ?? null,
         role: metadata.role,
         authId: metadata.authId,
-        branchId: metadata.branchId
+        branchId: metadata.branchId,
       },
     };
 
     console.log(response);
 
-    return right(response);
+    return response;
   }
 
   // async handle({ email, password }: LoginDTO): Promise<LoginResponseDto> {

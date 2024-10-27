@@ -1,9 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { ActionNotAllowed } from '../../../core/errors/action-not-allowed-error';
-import { NoCompleteInformation } from '../../../core/errors/no-complete-information-error';
-import { ResourceNotFound } from '../../../core/errors/resource-not-found';
-import { Either, left, right } from '../../../core/types/either';
 import toRawString from '../../../core/utils/toRawString';
 import {
   authSchema,
@@ -16,10 +12,7 @@ import { BranchRepository } from '../../repositories/branches-repository';
 
 type AuthenticateUserUseCaseRequest = z.infer<typeof authSchema>;
 
-type AuthenticateUserUseCaseResponse = Either<
-  ActionNotAllowed,
-  AuthResponseDto
->;
+type AuthenticateUserUseCaseResponse = AuthResponseDto;
 
 type ChangeTeacherBranch = {
   newBranchId: string;
@@ -67,12 +60,10 @@ export class ChangeBranchService {
         email: metadata.email,
         memberNumber: metadata.memberNumber ?? null,
         role: metadata.role,
-        branchId: metadata.branchId
+        branchId: metadata.branchId,
       },
     };
 
-    console.log(response);
-
-    return right(response);
+    return response;
   }
 }

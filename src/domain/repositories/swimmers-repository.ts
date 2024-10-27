@@ -1,10 +1,10 @@
 import { SwimmerEvo } from '../evo/entities/swimmer-evo-entity';
-import { SwimmerEntity } from '../entities/swimmer-entity';
-import { IRepository } from '../../core/generic/I-repository';
 import { SwimmerInfoResponse } from '../../infra/http/dtos/swimmers/swimmerInfo.dto';
 import { swimmerAndPeriod } from '../services/swimmers.service';
+import { ListAllSwimmersProps } from '../../infra/http/dtos/ListSwimmers.dto';
+import { Swimmer } from '@prisma/client';
 
-export abstract class SwimmersRepository extends IRepository<SwimmerEntity> {
+export abstract class SwimmersRepository {
   abstract upsertManyFromEvo(swimmers: SwimmerEvo[]): Promise<void>;
   abstract deleteDuplicates(): Promise<void>;
   abstract findManyByTeacher(
@@ -22,4 +22,18 @@ export abstract class SwimmersRepository extends IRepository<SwimmerEntity> {
   abstract createSwimmerFromEvoService(
     memberNumber: number,
   ): Promise<SwimmerInfoResponse | null>;
+  abstract findManyPaginated({
+    branchId,
+    page,
+    perPage,
+    search,
+  }: ListAllSwimmersProps): Promise<{
+    swimmers: Swimmer[];
+    totalSwimmers: number;
+  }>;
+
+  abstract updateSwimmerTeacher(
+    swimmerNumber: number,
+    teacherNumber: number,
+  ): Promise<void>;
 }

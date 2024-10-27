@@ -1,8 +1,6 @@
-import { IRepository } from '../../core/generic/I-repository';
-import { ReportEntity } from '../entities/ReportEntity';
 import { Area, Level, Period, Step, Swimmer, Teacher } from '@prisma/client';
 
-export abstract class ReportsRepository extends IRepository<ReportEntity> {
+export abstract class ReportsRepository {
   abstract findReportsAreasStepsTeacherSwimmer(reportId: string): Promise<
     | ({
         observation: string;
@@ -45,7 +43,6 @@ export abstract class ReportsRepository extends IRepository<ReportEntity> {
   >;
 
   abstract findManyByTeacher(props: {
-    
     teacherId: string;
     periodId: string;
   }): Promise<

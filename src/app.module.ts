@@ -23,7 +23,7 @@ import { envSchema } from './infra/env/env';
     //   },
     // }),
   ],
-  controllers: [SwimmersController],
-  providers: [SwimmersService],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}
