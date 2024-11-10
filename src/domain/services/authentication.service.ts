@@ -27,8 +27,12 @@ export class AuthenticationService {
     if (!password) throw new Error('Password not found');
 
     console.log(email);
-    const { auth, memberNumber, branchId } =
-      await this.authRepository.findByEmail(toRawString(email));
+    const userInformation = await this.authRepository.findByEmail(
+      toRawString(email),
+    );
+
+    if (!userInformation) throw new Error('User not found');
+    const { auth, memberNumber, branchId } = userInformation;
     if (!auth) throw new Error('User not found');
     const isPasswordValid = auth.password === password;
     if (!isPasswordValid) {

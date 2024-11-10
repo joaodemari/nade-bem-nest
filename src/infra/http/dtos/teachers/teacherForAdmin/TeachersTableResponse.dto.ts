@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 const TeachersTableRow = z.object({
   id: z.string(),
+  teacherAuthId: z.string(),
   teacherNumber: z.number(),
   name: z.string(),
   email: z.string(),
@@ -18,5 +19,3 @@ const TeachersTableResponseDto = z.object({
 });
 
 export type TeachersTableResponseDto = z.infer<typeof TeachersTableResponseDto>;
-
-

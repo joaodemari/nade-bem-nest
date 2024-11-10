@@ -9,6 +9,10 @@ import { Prisma, Teacher } from '@prisma/client';
 export class PrismaTeachersRepository implements TeachersRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  findByAuthId(authId: string): Promise<Teacher | null> {
+    throw new Error('Method not implemented.');
+  }
+
   async countReports({
     periodId,
     branchId,
@@ -157,6 +161,7 @@ export class PrismaTeachersRepository implements TeachersRepository {
     const result: TeachersTableResponseDto = {
       content: teachers.map((teacher) => ({
         id: teacher.id,
+        teacherAuthId: teacher.authId,
         teacherNumber: teacher.teacherNumber,
         name: teacher.name,
         email: teacher.email,

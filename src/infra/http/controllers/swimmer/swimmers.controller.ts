@@ -29,19 +29,22 @@ export class SwimmersController {
   constructor(private readonly swimmerService: SwimmersService) {}
 
   @Get()
-  @Roles(Role.teacher)
+  @Roles(Role.teacher, Role.admin)
   @UseZodGuard('query', ListSwimmersQuerySchema)
   async findAllOfTeacher(
     @Query() query: ListSwimmersQueryDTO,
     @CurrentUser() user: AuthPayloadDTO,
   ) {
+    if (user.role != Role.admin) {
+      query.teacherAuthId = user.authId;
+    }
     try {
       const result = await this.swimmerService.listByTeacherPaginated({
         page: +query.page,
         perPage: +query.perPage,
         onlyActive: query.onlyActive === 'true',
         search: query.search,
-        teacherNumber: user.role == Role.admin ? 8888 : user.memberNumber,
+        teacherAuthId: query.teacherAuthId,
         branchId: user.branchId,
         periodId: query.periodId,
       });

@@ -14,7 +14,7 @@ import { UpdateSwimmerTeacherProps } from '../../infra/http/dtos/swimmers/update
 import { BranchRepository } from '../repositories/branches-repository';
 import { EvoIntegrationService } from './integration/evoIntegration.service';
 
-export type swimmerAndPeriod = Swimmer & {
+export type swimmerAndReport = Swimmer & {
   isFromThisPeriod?: boolean;
   lastReportPeriodId?: string;
 } & {
@@ -126,45 +126,43 @@ export class SwimmersService {
     page,
     perPage,
     search,
-    teacherNumber,
+    teacherAuthId,
     onlyActive,
     branchId,
     periodId,
+
   }: ListSwimmersProps): Promise<ListSwimmersResponseRight> {
-    if (!teacherNumber)
-      throw new Error('Teacher number is required to list swimmers');
     if (page < 1) page = 1;
 
     // TODO: Melhorar a performance disso aqui:
     // fazer apenas 1 requisição para a parte de swimmers
     // e não 3 kkkkkkkkkk
 
-    let swimmers: swimmerAndPeriod[] = await this.repository.findManyByTeacher(
-      teacherNumber,
+    const {
+      swimmers,
+      totalSwimmers,
+    }: {
+      swimmers: swimmerAndReport[];
+      totalSwimmers: number;
+    } = await this.repository.findManyPaginated({
       branchId,
-    );
+      onlyActive,
+      search,
+      page,
+      perPage,
+      teacherAuthId,
+    });
 
-    if (onlyActive) swimmers = swimmers.filter((s) => s.isActive);
-
-    swimmers.map((s) => {
+    swimmers.forEach((s) => {
       s.isFromThisPeriod =
         s.lastReportPeriodId && s.lastReportPeriodId === periodId;
       return s;
     });
 
-    const swimmersWithoutReports = swimmers.filter(
-      (s) => !s.isFromThisPeriod,
-    ).length;
-
-    const searchFilter = (s: swimmerAndPeriod) =>
-      s.memberNumber.toString().includes(search) ||
-      cleanContains({ containsThis: search, thisOne: s.name });
-
-    const swimmersFiltered = swimmers.filter((s) => searchFilter(s));
     return {
-      swimmers: swimmersFiltered.slice((page - 1) * perPage, page * perPage),
-      numberOfPages: Math.ceil(swimmersFiltered.length / perPage),
-      swimmersWithoutReports,
+      swimmers,
+      numberOfPages: Math.ceil(totalSwimmers / perPage),
+      swimmersWithoutReports: 0,
     };
   }
 }

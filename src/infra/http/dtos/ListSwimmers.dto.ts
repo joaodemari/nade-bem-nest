@@ -2,7 +2,7 @@ import { createZodDto } from 'nestjs-zod';
 import { swimmerSchema } from './swimmers/swimmer.dto';
 import { periodSchema } from './periods/period.dto';
 import { z } from 'zod';
-import { swimmerAndPeriod } from '../../../domain/services/swimmers.service';
+import { swimmerAndReport } from '../../../domain/services/swimmers.service';
 import { Swimmer } from '@prisma/client';
 
 export const isString = (value: unknown): value is string =>
@@ -23,6 +23,7 @@ export const ListSwimmersQuerySchema = z.object({
   search: z.string().default(''),
   onlyActive: z.enum(['true', 'false']).optional().default('false'),
   periodId: z.string(),
+  teacherAuthId: z.string().optional(),
 });
 
 export class ListSwimmersQueryDTO extends createZodDto(
@@ -33,8 +34,8 @@ export const ListSwimmersPropsSchema = z.object({
   page: z.number().positive().default(1),
   perPage: z.number().positive().default(12),
   search: z.string().default(''),
-  teacherNumber: z.number(),
-  onlyActive: z.boolean().default(false),
+  teacherAuthId: z.string().optional(),
+  onlyActive: z.boolean().default(true),
   branchId: z.string(),
   periodId: z.string(),
 });
@@ -53,7 +54,7 @@ export class ListSwimmersResponseDTO extends createZodDto(
 ) {}
 
 export type ListSwimmersResponseRight = {
-  swimmers: swimmerAndPeriod[];
+  swimmers: swimmerAndReport[];
   numberOfPages: number;
   swimmersWithoutReports: number;
 };
@@ -81,8 +82,9 @@ export const ListAllSwimmersPropsSchema = z.object({
   page: z.number().positive().default(1),
   perPage: z.number().positive().default(12),
   search: z.string().default(''),
-  onlyActive: z.boolean().default(false),
+  onlyActive: z.boolean().default(true),
   branchId: z.string(),
+  teacherAuthId: z.string().optional(),
 });
 
 export class ListAllSwimmersProps extends createZodDto(

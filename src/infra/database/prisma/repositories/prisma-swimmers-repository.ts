@@ -10,6 +10,7 @@ import axios from 'axios';
 import { EnvService } from '../../../env/env.service';
 import capitalizeName from '../../../../core/utils/capitalizeName';
 import { ListAllSwimmersProps } from '../../../http/dtos/ListSwimmers.dto';
+import { swimmerAndReport } from '../../../../domain/services/swimmers.service';
 
 @Injectable()
 export class PrismaSwimmersRepository implements SwimmersRepository {
@@ -72,21 +73,16 @@ export class PrismaSwimmersRepository implements SwimmersRepository {
     return swimmer;
   };
 
-  async findManyByTeacher(teacherNumber: number, branchId: string) {
-    if (!teacherNumber) return [];
-
-    const where: Prisma.SwimmerWhereInput =
-      teacherNumber === 8888
-        ? {
-            branchId,
-          }
-        : {
-            teacherNumber,
-            branchId,
-          };
+  async findManyByTeacher(teacherId: string, branchId: string) {
+    if (!teacherId) return [];
 
     const swimmers = await this.prisma.swimmer.findMany({
-      where,
+      where: {
+        Teacher: {
+          id: teacherId,
+        },
+        branchId,
+      },
       orderBy: {
         lastReport: 'asc',
       },
@@ -124,12 +120,15 @@ export class PrismaSwimmersRepository implements SwimmersRepository {
     page,
     perPage,
     search,
+    onlyActive,
+    teacherAuthId,
   }: ListAllSwimmersProps): Promise<{
-    swimmers: Swimmer[];
+    swimmers: swimmerAndReport[];
     totalSwimmers: number;
   }> {
     const where: Prisma.SwimmerWhereInput = {
       branchId,
+      isActive: onlyActive,
     };
 
     if (Number.isNaN(parseInt(search))) {
@@ -140,10 +139,23 @@ export class PrismaSwimmersRepository implements SwimmersRepository {
     } else {
       where.memberNumber = parseInt(search);
     }
+
+    if (teacherAuthId) {
+      where.Teacher = {
+        authId: teacherAuthId,
+      };
+    }
     const swimmers = await this.prisma.swimmer.findMany({
       where,
       skip: (page - 1) * perPage,
       take: perPage,
+      orderBy: {
+        lastReport: 'asc',
+      },
+      include: {
+        Report: { orderBy: { createdAt: 'asc' } },
+        lastReportAccess: true,
+      },
     });
 
     const swimmersCount = await this.prisma.swimmer.count({
@@ -165,7 +177,15 @@ export class PrismaSwimmersRepository implements SwimmersRepository {
     //     return 0;
     // });
 
-    return { swimmers, totalSwimmers: swimmersCount };
+    return {
+      swimmers: swimmers.map((swimmer) => {
+        return {
+          ...swimmer,
+          lastReportPeriodId: swimmer.lastReportAccess?.periodId,
+        };
+      }),
+      totalSwimmers: swimmersCount,
+    };
   }
 
   async upsertManyFromEvo(swimmersInEvo: SwimmerEvo[]): Promise<void> {

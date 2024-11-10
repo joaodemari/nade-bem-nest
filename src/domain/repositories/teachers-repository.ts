@@ -2,6 +2,7 @@ import { Teacher } from '@prisma/client';
 import { TeachersTableResponseDto } from '../../infra/http/dtos/teachers/teacherForAdmin/TeachersTableResponse.dto';
 
 export abstract class TeachersRepository {
+  abstract findByAuthId(authId: string): Promise<Teacher | null>;
   abstract generateToken(id: number): Promise<string>;
   abstract findByEmail(
     teacherEmail: string,

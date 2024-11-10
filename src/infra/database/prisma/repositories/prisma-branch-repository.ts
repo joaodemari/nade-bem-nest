@@ -6,6 +6,9 @@ import { Branch, Prisma } from '@prisma/client';
 @Injectable()
 export class PrismaBranchRepository implements BranchRepository {
   constructor(private readonly prisma: PrismaService) {}
+  findManyByEnterpriseId(enterpriseId: string): Promise<Branch[]> {
+    throw new Error('Method not implemented.');
+  }
   async getDefaultTeacher(branchId: string): Promise<number> {
     return 4;
   }

@@ -1,5 +1,5 @@
 import { Swimmer } from '@prisma/client';
-import { swimmerAndPeriod } from '../../domain/services/swimmers.service';
+import { swimmerAndReport } from '../../domain/services/swimmers.service';
 
 export class SwimmerPresenter {
   static toHTTP(swimmer: Swimmer | Swimmer[] | null) {
@@ -35,7 +35,7 @@ export class SwimmerPresenter {
   }
 
   static toHTTPSwimmerAndPeriod(
-    swimmer: swimmerAndPeriod | swimmerAndPeriod[] | null,
+    swimmer: swimmerAndReport | swimmerAndReport[] | null,
   ) {
     if (!swimmer) return null;
     if (swimmer instanceof Array) {

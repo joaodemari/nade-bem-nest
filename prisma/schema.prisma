@@ -51,7 +51,6 @@ model Auth {
   admin     Admin?
   role      String
   name      String
-
 }
 
 model Admin {

@@ -1,6 +1,6 @@
 import { SwimmerEvo } from '../evo/entities/swimmer-evo-entity';
 import { SwimmerInfoResponse } from '../../infra/http/dtos/swimmers/swimmerInfo.dto';
-import { swimmerAndPeriod } from '../services/swimmers.service';
+import { swimmerAndReport } from '../services/swimmers.service';
 import { ListAllSwimmersProps } from '../../infra/http/dtos/ListSwimmers.dto';
 import { Swimmer } from '@prisma/client';
 
@@ -8,9 +8,9 @@ export abstract class SwimmersRepository {
   abstract upsertManyFromEvo(swimmers: SwimmerEvo[]): Promise<void>;
   abstract deleteDuplicates(): Promise<void>;
   abstract findManyByTeacher(
-    teacherNumber: number,
+    teacherId: string,
     branchId: string,
-  ): Promise<swimmerAndPeriod[]>;
+  ): Promise<swimmerAndReport[]>;
   abstract countSwimmersWithoutReport(
     teacherNumber: number,
     periodStartDate: Date,
@@ -28,7 +28,7 @@ export abstract class SwimmersRepository {
     perPage,
     search,
   }: ListAllSwimmersProps): Promise<{
-    swimmers: Swimmer[];
+    swimmers: swimmerAndReport[];
     totalSwimmers: number;
   }>;
 
