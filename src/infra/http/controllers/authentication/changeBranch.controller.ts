@@ -1,12 +1,4 @@
-import {
-  BadRequestException,
-  Body,
-  Controller,
-  Param,
-  Post,
-  UnauthorizedException,
-} from '@nestjs/common';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { BadRequestException, Controller, Param, Post } from '@nestjs/common';
 import { AuthPayloadDTO, AuthResponseDto } from '../../dtos/auth/login.dto';
 import { Roles } from '../../decorators/role.decorator';
 import { Role } from '../../../../domain/enums/role.enum';

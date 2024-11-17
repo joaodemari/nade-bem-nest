@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import axios from 'axios';
-import { getEvoUrl } from '../../../infra/api/evourl';
+import axios, { AxiosInstance } from 'axios';
 import { AuthPayloadDTO } from '../../../infra/http/dtos/auth/login.dto';
 import { BranchRepository } from '../../repositories/branches-repository';
 import { Role } from '../../enums/role.enum';
@@ -18,12 +17,47 @@ interface authEvoResponse {
   urlMemberArea: string;
 }
 
+interface ResetPasswordResponse {
+  result: string;
+}
+
 @Injectable()
 export class EvoIntegrationService {
   constructor(
     private readonly branchRepository: BranchRepository,
     private readonly swimmersRepository: SwimmersRepository,
   ) {}
+
+  async getResetPasswordLink({
+    branchId,
+    email,
+  }: {
+    branchId: string;
+    email: string;
+  }): Promise<{ redirectLink: string }> {
+    const branchToken = await this.branchRepository.getBranchToken(branchId);
+    const evoApi = this.getEvoUrl({ token: branchToken });
+
+    try {
+      const { data } = await evoApi.get<ResetPasswordResponse>(
+        `members/resetPassword?user=${email}`,
+      );
+
+      return { redirectLink: data.result };
+    } catch (error) {
+      throw new Error('Usuário não encontrado');
+    }
+  }
+
+  private getEvoUrl = ({ token }: { token: string }): AxiosInstance => {
+    const encryptedCredentials = btoa(token);
+    return axios.create({
+      baseURL: 'https://evo-integracao.w12app.com.br/api/v1',
+      headers: {
+        Authorization: `Basic ${encryptedCredentials}`,
+      },
+    });
+  };
 
   async getSwimmersByEmail({
     email,
@@ -33,7 +67,7 @@ export class EvoIntegrationService {
     branchId: string;
   }): Promise<SwimmerEvo[]> {
     const evoToken = await this.branchRepository.getBranchToken(branchId);
-    const evoApi = getEvoUrl(evoToken);
+    const evoApi = this.getEvoUrl({ token: evoToken });
     const encodedEmail = encodeURIComponent(email);
     const { data } = await evoApi.get<SwimmerEvo[]>(
       '/members?email=' + encodedEmail,
@@ -66,20 +100,14 @@ export class EvoIntegrationService {
     branchId: string;
   }): Promise<AuthPayloadDTO> {
     const evoToken = await this.branchRepository.getBranchToken(props.branchId);
-    const evoApi = getEvoUrl(evoToken);
+    const evoApi = this.getEvoUrl({ token: evoToken });
     const encodedEmail = encodeURIComponent(props.email);
     const encodedPassword = encodeURIComponent(props.password);
 
-    const { data } = await evoApi
-      .post<authEvoResponse>(
-        '/members/auth?email=' + encodedEmail + '&password=' + encodedPassword,
-      )
-      .catch((err) => {
-        console.log(err);
-        throw new Error('Evo credentials invalid');
-      });
-
-    if (!data) {
+    const { data } = await evoApi.post<authEvoResponse>(
+      '/members/auth?email=' + encodedEmail + '&password=' + encodedPassword,
+    );
+    if (data && data.successAuthenticate !== true) {
       throw new Error('Invalid credentials');
     }
     console.log(data);
@@ -101,7 +129,7 @@ export class EvoIntegrationService {
     IdConsultorDestino: number;
     IdFilialDestino: number;
   }): Promise<boolean> {
-    const evoApi = getEvoUrl(props.IdBranchToken);
+    const evoApi = this.getEvoUrl({ token: props.IdBranchToken });
     try {
       console.log('props', props);
       console.log('btoa', btoa(props.IdBranchToken));
@@ -129,7 +157,7 @@ export class EvoIntegrationService {
   }
 
   async findSwimmer(swimmerId: number, evoToken: string): Promise<SwimmerEvo> {
-    const evoApi = getEvoUrl(evoToken);
+    const evoApi = this.getEvoUrl({ token: evoToken });
     console.log(swimmerId);
     try {
       const swimmerInfo = await evoApi

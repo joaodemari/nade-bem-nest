@@ -26,11 +26,13 @@ import { IsPublic } from '../../decorators/is-public.decorator';
 import { Swimmer } from '@prisma/client';
 import { GetSwimmersByResponsibleUseCase } from '../../../../domain/services/responsibles/getSwimmersByResponsibleUseCase.service';
 import { SwimmerWithPeriod } from '../../../../domain/repositories/responsibles-repository';
+import { EvoIntegrationService } from '../../../../domain/services/integration/evoIntegration.service';
 
 @Controller('responsibles')
 export class ResponsibleController {
   constructor(
     private readonly getSwimmersByResponsibleUseCase: GetSwimmersByResponsibleUseCase,
+    private readonly evoIntegrationService: EvoIntegrationService,
   ) {}
   @Get('swimmers')
   @Roles(Role.Teacher, Role.Admin, Role.Responsible)
@@ -41,6 +43,25 @@ export class ResponsibleController {
       const result = await this.getSwimmersByResponsibleUseCase.execute(
         user.authId,
       );
+      return result;
+    } catch (e) {
+      throw new BadRequestException(e.message);
+    }
+  }
+
+  @IsPublic()
+  @Get('reset-password')
+  async getResetPasswordLink(
+    @Query('email') email: string,
+    @Query('branchId') branchId: string,
+  ) {
+    try {
+      const result = await this.evoIntegrationService.getResetPasswordLink({
+        email,
+        branchId,
+      });
+
+      console.log(result);
       return result;
     } catch (e) {
       throw new BadRequestException(e.message);

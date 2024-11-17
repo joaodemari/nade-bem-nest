@@ -37,25 +37,19 @@ export class AuthenticationService {
     branchId,
   }: AuthenticateResponsibleUseCaseRequest) {
     // tentar o login no evo:
-    // const evoLogin = await this.evoIntegrationService.authenticateResponsible({
-    //   email,
-    //   password,
-    //   branchId,
-    // });
+    const evoLogin = await this.evoIntegrationService.authenticateResponsible({
+      email,
+      password,
+      branchId,
+    });
+
+    console.log(evoLogin);
 
     // funcionou? pegar dados do banco nade bem
 
     let responsible =
       await this.responsibleRepository.findByEmailWithAuth(email);
 
-    const evoLogin: AuthPayloadDTO = {
-      email,
-      role: Role.Responsible,
-      authId: responsible?.auth.id,
-      branchId: responsible?.branchId,
-      memberNumber: null,
-      name: 'Heitor Morales',
-    };
     if (!responsible) {
       // Não existe no Nade Bem? Criar Responsible no Nade Bem -> puxar todos os alunos relacionados aquele email
       const swimmers = await this.evoIntegrationService.getSwimmersByEmail({
