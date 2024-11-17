@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
 export enum Role {
-  teacher = 'teacher',
-  swimmer = 'swimmer',
-  admin = 'admin',
+  Teacher = 'teacher',
+  Admin = 'admin',
+  Responsible = 'responsible',
 }
 
-export const RoleZodEnum = z.enum([Role.teacher, Role.swimmer]);
+export const RoleZodEnum = z.enum([Role.Teacher, Role.Responsible, Role.Admin]);

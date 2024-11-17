@@ -1,73 +1,80 @@
-// import { PrismaClient } from "@prisma/client";
-// import { randomUUID } from "crypto";
-// import { SwimmerEntity } from "../../../domain/entities/SwimmerEntity";
-// import { ResponsibleEntity } from "../../../domain/entities/ResponsibleEntity";
-// import { PrismaResponsiblesMapper } from "../mappers/prisma-responsible-mapper.ts";
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma.service';
+import { Auth, Prisma, Responsible, Swimmer } from '@prisma/client';
+import {
+  createResponsibleAndAuth,
+  ResponsibleRepository,
+  SwimmerWithPeriod,
+} from '../../../../domain/repositories/responsibles-repository';
+import { Role } from '../../../../domain/enums/role.enum';
 
-// export class PrismaResponsiblesRepository {
-//     private prisma: PrismaClient;
-//     constructor() {
-//         this.prisma = new PrismaClient();
-//     }
-//     async findByResetToken(token: string): Promise<ResponsibleEntity | null> {
-//         const responsible = await this.prisma.responsible.findUnique({
-//             where: {
-//                 resetToken: token,
-//             },
-//         });
+@Injectable()
+export class PrismaResponsiblesRepository implements ResponsibleRepository {
+  constructor(private readonly prisma: PrismaService) {}
+  async getSwimmersByResponsible(
+    responsibleAuthId: string,
+  ): Promise<SwimmerWithPeriod[]> {
+    const swimmer = await this.prisma.swimmer.findMany({
+      where: {
+        Responsible: {
+          authId: responsibleAuthId,
+        },
+      },
+      include: {
+        lastReportAccess: {
+          include: {
+            Period: true,
+          },
+        },
+      },
+    });
 
-//         if (!responsible) {
-//             return null;
-//         }
+    return swimmer.map((swimmer) => ({
+      ...swimmer,
+      period: swimmer.lastReportAccess?.Period,
+    }));
+  }
 
-//         return PrismaResponsiblesMapper.toDomain(responsible);
-//     }
+  findByEmailWithAuth(email: string): Promise<Responsible & { auth: Auth }> {
+    return this.prisma.responsible.findFirst({
+      where: {
+        auth: {
+          email,
+        },
+      },
+      include: {
+        auth: true,
+      },
+    });
+  }
 
-//     async findByEmail(
-//         responsibleEmail: string
-//     ): Promise<ResponsibleEntity | null> {
-//         const responsible = await this.prisma.responsible.findUnique({
-//             where: {
-//                 email: responsibleEmail,
-//             },
-//         });
-
-//         if (!responsible) {
-//             return null;
-//         }
-
-//         return PrismaResponsiblesMapper.toDomain(responsible);
-//     }
-
-//     async updatePassword(token: string, newPassword: string): Promise<void> {
-//         await this.prisma.responsible.update({
-//             where: {
-//                 resetToken: token,
-//             },
-//             data: {
-//                 password: newPassword,
-//             },
-//         });
-//     }
-
-//     async generateToken(responsibleEmail: string): Promise<string> {
-//         const token = randomUUID();
-//         await this.prisma.responsible.update({
-//             where: {
-//                 email: responsibleEmail,
-//             },
-//             data: {
-//                 resetToken: token,
-//             },
-//         });
-//         return token;
-//     }
-
-//     async create(responsible: ResponsibleEntity): Promise<void> {
-//         await this.prisma.responsible.create({
-//             data: PrismaResponsiblesMapper.toPersistence(responsible),
-//         });
-//     }
-// }
-
-// export const prismaResponsiblesRepository = new PrismaResponsiblesRepository();
+  createResponsibleAndAuth(
+    payload: createResponsibleAndAuth,
+  ): Promise<Responsible & { auth: Auth }> {
+    return this.prisma.responsible.create({
+      data: {
+        branch: {
+          connect: {
+            id: payload.branchId,
+          },
+        },
+        auth: {
+          create: {
+            email: payload.email,
+            password: payload.password,
+            role: Role.Responsible,
+            name: payload.name,
+          },
+        },
+        swimmers: {
+          connect: payload.swimmerNumbers.map((swimmerNumber) => ({
+            memberNumber: swimmerNumber,
+          })),
+        },
+      },
+      include: {
+        auth: true,
+      },
+    });
+  }
+}

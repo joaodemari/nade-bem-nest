@@ -11,6 +11,7 @@ import { AuthenticationService } from '../../../domain/services/authentication.s
 import { CryptographyModule } from '../criptography/cryptography.module';
 import { JwtAuthGuard } from '../../../infra/auth/guards/jwt-auth.guard';
 import { APP_GUARD } from '@nestjs/core';
+import { EvoIntegrationService } from '../../../domain/services/integration/evoIntegration.service';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { APP_GUARD } from '@nestjs/core';
     JwtStrategy,
     EnvService,
     HttpStrategy,
+    EvoIntegrationService,
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,

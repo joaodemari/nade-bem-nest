@@ -19,6 +19,37 @@ export class PrismaSwimmersRepository implements SwimmersRepository {
     private readonly periodsRepository: PeriodsRepository,
     private readonly env: EnvService,
   ) {}
+  async createSwimmerFromEvo(
+    swimmer: SwimmerEvo,
+    branchId: string,
+  ): Promise<Swimmer> {
+    return await this.prisma.swimmer.create({
+      data: SwimmerEvoMapper.toPersistence(swimmer, branchId),
+    });
+  }
+
+  async upsertManyFromEvo(
+    swimmers: SwimmerEvo[],
+    branchId: string,
+  ): Promise<void> {
+    if (swimmers.length === 0) return;
+
+    await Promise.all(
+      swimmers.map(async (swimmer) => {
+        await this.prisma.swimmer
+          .upsert({
+            where: {
+              memberNumber: swimmer.idMember,
+            },
+            update: SwimmerEvoMapper.updateInPersistence(swimmer, branchId),
+            create: SwimmerEvoMapper.toPersistence(swimmer, branchId),
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+      }),
+    );
+  }
 
   async updateSwimmerTeacher(
     swimmerNumber: number,
@@ -188,29 +219,11 @@ export class PrismaSwimmersRepository implements SwimmersRepository {
     };
   }
 
-  async upsertManyFromEvo(swimmersInEvo: SwimmerEvo[]): Promise<void> {
-    if (swimmersInEvo.length === 0) return;
-
-    await Promise.all(
-      swimmersInEvo.map(async (swimmer) => {
-        const data = SwimmerEvoMapper.toPersistence(swimmer);
-        await this.prisma.swimmer
-          .upsert({
-            where: {
-              memberNumber: swimmer.idMember,
-            },
-            update: data,
-            create: data,
-          })
-          .catch((error) => {
-            console.error(error);
-          });
-      }),
-    );
-  }
-
-  async upsertOneFromEvo(swimmer: SwimmerEvo): Promise<Swimmer | null> {
-    const data = SwimmerEvoMapper.toPersistence(swimmer);
+  async upsertOneFromEvo(
+    swimmer: SwimmerEvo,
+    branchId: string,
+  ): Promise<Swimmer | null> {
+    const data = SwimmerEvoMapper.toPersistence(swimmer, branchId);
     return this.prisma.swimmer
       .upsert({
         where: {
@@ -302,33 +315,5 @@ export class PrismaSwimmersRepository implements SwimmersRepository {
         };
       }),
     };
-  }
-
-  async createSwimmerFromEvoService(
-    memberNumber: number,
-  ): Promise<SwimmerInfoResponse | null> {
-    try {
-      const url = `https://evo-integracao.w12app.com.br/api/v1/members/${memberNumber}`;
-      const evo_cred = this.env.get('EVO_CRED');
-      const credentials = btoa(evo_cred);
-      const { data }: { data: SwimmerEvo } = await axios.get(url, {
-        headers: {
-          Authorization: `Basic ${credentials}`, // Use btoa here
-        },
-      });
-
-      const swimmer = await this.upsertOneFromEvo(data);
-      return {
-        swimmer: {
-          name: swimmer.name,
-          actualLevel: swimmer.actualLevelName,
-          photoUrl: swimmer.photoUrl,
-        },
-        reports: [],
-      };
-    } catch (e) {
-      console.log(e);
-      return null;
-    }
   }
 }

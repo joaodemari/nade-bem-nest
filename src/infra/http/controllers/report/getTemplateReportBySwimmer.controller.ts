@@ -9,7 +9,7 @@ import { GetRepTemplBySwimmerService } from '../../../../domain/services/reports
 import { Role } from '../../../../domain/enums/role.enum';
 import { Roles } from '../../decorators/role.decorator';
 
-@Roles(Role.teacher)
+@Roles(Role.Teacher)
 @Controller('report-template/last-report')
 export class GetTemplateReportBySwimmerController {
   constructor(

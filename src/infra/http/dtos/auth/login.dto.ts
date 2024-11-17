@@ -8,6 +8,14 @@ export const authSchema = z.object({
 
 export class AuthDTO extends createZodDto(authSchema) {}
 
+export const responsibleAuthSchema = z.object({
+  email: z.string().email(),
+  password: z.string(),
+  branchId: z.string(),
+});
+
+export class ResponsibleAuthDTO extends createZodDto(responsibleAuthSchema) {}
+
 export const AuthResponseSchema = z.object({
   success: z.boolean(),
   metadata: z

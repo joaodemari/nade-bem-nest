@@ -5,7 +5,6 @@ import { ListAllSwimmersProps } from '../../infra/http/dtos/ListSwimmers.dto';
 import { Swimmer } from '@prisma/client';
 
 export abstract class SwimmersRepository {
-  abstract upsertManyFromEvo(swimmers: SwimmerEvo[]): Promise<void>;
   abstract deleteDuplicates(): Promise<void>;
   abstract findManyByTeacher(
     teacherId: string,
@@ -19,9 +18,7 @@ export abstract class SwimmersRepository {
   abstract findSwimmerAndReports(
     idMember: number,
   ): Promise<SwimmerInfoResponse | null>;
-  abstract createSwimmerFromEvoService(
-    memberNumber: number,
-  ): Promise<SwimmerInfoResponse | null>;
+
   abstract findManyPaginated({
     branchId,
     page,
@@ -36,4 +33,13 @@ export abstract class SwimmersRepository {
     swimmerNumber: number,
     teacherNumber: number,
   ): Promise<void>;
+  abstract upsertManyFromEvo(
+    swimmers: SwimmerEvo[],
+    branchId: string,
+  ): Promise<void>;
+
+  abstract createSwimmerFromEvo(
+    swimmer: SwimmerEvo,
+    branchId: string,
+  ): Promise<Swimmer>;
 }

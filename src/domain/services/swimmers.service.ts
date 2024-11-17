@@ -31,11 +31,19 @@ export class SwimmersService {
 
   async findSwimmerInfo(
     memberNumber: number,
+    branchId: string,
   ): Promise<SwimmerInfoResponse | null> {
     let result = await this.repository.findSwimmerAndReports(memberNumber);
 
     if (!result) {
-      result = await this.repository.createSwimmerFromEvoService(memberNumber);
+      const swimmerInEvo = await this.evoIntegrationService.findSwimmer(
+        memberNumber,
+        branchId,
+      );
+
+      await this.repository.createSwimmerFromEvo(swimmerInEvo, branchId);
+
+      result = await this.repository.findSwimmerAndReports(memberNumber);
     }
 
     return result;
@@ -60,22 +68,18 @@ export class SwimmersService {
     const { swimmerNumber, teacherNumber, branchId } = props;
     const branchToken = await this.branchRepository.getBranchToken(branchId);
 
-    console.log(branchToken);
-    const swimmerInformation =
-      await this.evoIntegrationService.getSwimmerInformationToTransfer(
-        swimmerNumber,
-        branchToken,
-      );
-
-    console.log(swimmerInformation);
+    const swimmerInformation = await this.evoIntegrationService.findSwimmer(
+      swimmerNumber,
+      branchToken,
+    );
 
     const swimmerTransfer =
       await this.evoIntegrationService.transferSwimmerToTeacher({
         IdCliente: swimmerNumber,
         IdProfessorDestino: teacherNumber,
         IdBranchToken: branchToken,
-        IdConsultorDestino: swimmerInformation.idConsultor,
-        IdFilialDestino: swimmerInformation.idFilial,
+        IdConsultorDestino: swimmerInformation.idEmployeeConsultant,
+        IdFilialDestino: swimmerInformation.idBranch,
       });
 
     if (!swimmerTransfer) {
@@ -130,7 +134,6 @@ export class SwimmersService {
     onlyActive,
     branchId,
     periodId,
-
   }: ListSwimmersProps): Promise<ListSwimmersResponseRight> {
     if (page < 1) page = 1;
 

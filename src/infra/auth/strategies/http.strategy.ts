@@ -10,7 +10,7 @@ export class HttpStrategy extends PassportStrategy(BasicStrategy) {
   }
 
   async validate(email: string, password: string) {
-    const user = await this.authenticationService.execute({
+    const user = await this.authenticationService.authenticateEnterprise({
       email: email,
       password: password,
     });

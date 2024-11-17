@@ -29,13 +29,13 @@ export class SwimmersController {
   constructor(private readonly swimmerService: SwimmersService) {}
 
   @Get()
-  @Roles(Role.teacher, Role.admin)
+  @Roles(Role.Teacher, Role.Admin)
   @UseZodGuard('query', ListSwimmersQuerySchema)
   async findAllOfTeacher(
     @Query() query: ListSwimmersQueryDTO,
     @CurrentUser() user: AuthPayloadDTO,
   ) {
-    if (user.role != Role.admin) {
+    if (user.role != Role.Admin) {
       query.teacherAuthId = user.authId;
     }
     try {
@@ -59,7 +59,7 @@ export class SwimmersController {
   }
 
   @Put(':swimmerId/teacher/:teacherId')
-  @Roles(Role.teacher)
+  @Roles(Role.Teacher)
   async updateTeacher(
     @Param('swimmerId') swimmerId: string,
     @Param('teacherId') teacherId: string,
@@ -77,7 +77,7 @@ export class SwimmersController {
   }
 
   @Put(':swimmerId/remove-teacher')
-  @Roles(Role.teacher)
+  @Roles(Role.Teacher)
   async removeSwimmer(
     @Param('swimmerId') swimmerId: string,
     @CurrentUser() user: AuthPayloadDTO,
@@ -94,7 +94,7 @@ export class SwimmersController {
   }
 
   @Get('/all')
-  @Roles(Role.teacher)
+  @Roles(Role.Teacher)
   @UseZodGuard('query', ListAllSwimmersQuerySchema)
   async findAllOfBranch(
     @Query() query: ListAllSwimmersQueryDTO,
@@ -118,9 +118,10 @@ export class SwimmersController {
   }
 
   @Get(':id')
-  @IsPublic()
+  @Roles(Role.Teacher, Role.Admin, Role.Responsible)
   async findSwimmerInfo(
     @Param('id') id: string,
+    @CurrentUser() user: AuthPayloadDTO,
   ): Promise<BadRequestException | SwimmerInfoResponse> {
     try {
       if (Number.isNaN(id)) throw new BadRequestException('Invalid id');
@@ -138,7 +139,10 @@ export class SwimmersController {
           level: string;
           id: string;
         }[];
-      } = await this.swimmerService.findSwimmerInfo(memberNumber);
+      } = await this.swimmerService.findSwimmerInfo(
+        memberNumber,
+        user.branchId,
+      );
       if (!result) {
         throw new BadRequestException('Swimmer not found');
       }

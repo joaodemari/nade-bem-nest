@@ -15,6 +15,8 @@ import { BranchRepository } from '../../domain/repositories/branches-repository'
 import { PrismaBranchRepository } from './prisma/repositories/prisma-branch-repository';
 import { AuthRepository } from '../../domain/repositories/auth-repository';
 import { PrismaAuthRepository } from './prisma/repositories/prisma-auth-repository';
+import { PrismaResponsiblesRepository } from './prisma/repositories/prisma-responsibles-repository';
+import { ResponsibleRepository } from '../../domain/repositories/responsibles-repository';
 
 @Module({
   providers: [
@@ -48,6 +50,10 @@ import { PrismaAuthRepository } from './prisma/repositories/prisma-auth-reposito
       provide: AuthRepository,
       useClass: PrismaAuthRepository,
     },
+    {
+      provide: ResponsibleRepository,
+      useClass: PrismaResponsiblesRepository,
+    },
   ],
   exports: [
     PrismaService,
@@ -58,6 +64,7 @@ import { PrismaAuthRepository } from './prisma/repositories/prisma-auth-reposito
     LevelsRepository,
     BranchRepository,
     AuthRepository,
+    ResponsibleRepository,
   ],
 })
 export class PrismaDatabaseModule {}

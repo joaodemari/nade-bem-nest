@@ -9,7 +9,7 @@ import { PeriodService } from '../../../../domain/services/periods/periods.servi
 export class PeriodController {
   constructor(private readonly periodsService: PeriodService) {}
 
-  @Roles(Role.teacher)
+  @Roles(Role.Teacher)
   @Get()
   async findAllByBranch(@CurrentUser() user: AuthPayloadDTO) {
     return await this.periodsService.findAllByBranch(user.branchId);

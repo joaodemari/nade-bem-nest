@@ -18,7 +18,7 @@ export class TeacherController {
     return await this.service.countReports({ periodId, branchId });
   }
 
-  @Roles(Role.admin)
+  @Roles(Role.Admin)
   @Get('table')
   async teachersTable(
     @Query('periodId') periodId: string,

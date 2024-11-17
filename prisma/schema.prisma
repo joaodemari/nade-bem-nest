@@ -17,6 +17,8 @@ model Branch {
   branchTeachers BranchTeacher[]
   enterprise    Enterprise?    @relation(fields: [enterpriseId], references: [id])
   enterpriseId  String?        @db.ObjectId
+
+  Responsible Responsible[]
 }
 
 model BranchTeacher{
@@ -51,6 +53,16 @@ model Auth {
   admin     Admin?
   role      String
   name      String
+  Responsible Responsible?
+}
+
+model Responsible{
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  auth      Auth @relation(fields: [authId], references: [id])
+  authId    String @db.ObjectId @unique
+  swimmers  Swimmer[]
+  branch    Branch @relation(fields: [branchId], references: [id])
+  branchId  String @db.ObjectId
 }
 
 model Admin {
@@ -91,7 +103,7 @@ model Swimmer {
 
   name       String
   photoUrl   String?
-  lastAccess DateTime
+  lastAccess DateTime?
 
   Report       Report[] @relation(name: "SwimmerReports")
   lastReport   DateTime?
@@ -103,6 +115,9 @@ model Swimmer {
 
   Branch        Branch      @relation(fields: [branchId], references: [id])
   branchId      String      @db.ObjectId
+
+  responsibleId String? @db.ObjectId
+  Responsible   Responsible? @relation(fields: [responsibleId], references: [id])  
 }
 
 model Report {

@@ -263,59 +263,7 @@
 //   }
 // );
 
-// app.get(
-//   "/report/:id",
-//   async (
-//     req: {
-//       params: { id: string };
-//     },
-//     res
-//   ) => {
-//     try {
-//       const report = await prisma.report.findFirst({
-//         where: {
-//           id: req.params.id,
-//         },
-//         include: {
-//           level: {
-//             include: {
-//               areas: { include: { steps: true } },
-//             },
-//           },
-//           ReportAndSteps: { include: { step: true } },
-//         },
-//       });
-//       if (!report) throw new Error("Report not found");
-//       let reportLevel: ({ areas: ({ steps: Step[] } & Area)[] } & Level) | null;
-//       let reportLevelWithSelectedSteps:
-//         | ({
-//             report: Report;
-//             areas: ({
-//               lastReportStepId: string;
-//               steps: Step[];
-//             } & Area)[];
-//           } & Level)
-//         | null;
-//       reportLevel = report.level;
-//       reportLevelWithSelectedSteps = {
-//         ...reportLevel,
-//         report: report,
-//         areas: reportLevel.areas.map((area) => {
-//           return {
-//             ...area,
-//             lastReportStepId:
-//               report.ReportAndSteps.find((step) => step.step.areaId === area.id)
-//                 ?.stepId ?? "",
-//           };
-//         }),
-//       };
-//       res.status(200).json(reportLevelWithSelectedSteps);
-//     } catch (e) {
-//       console.log(e);
-//       res.status(400).send(e);
-//     }
-//   }
-// );
+
 
 // app.get(
 //   "/reports/actual-template/:id",

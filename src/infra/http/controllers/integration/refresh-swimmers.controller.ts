@@ -7,7 +7,7 @@ import { Role } from '../../../../domain/enums/role.enum';
 import { CurrentUser } from '../../decorators/current-user.decorator';
 import { AuthPayloadDTO } from '../../dtos/auth/login.dto';
 
-@Roles(Role.teacher)
+@Roles(Role.Teacher)
 @Controller('integration')
 export class RefreshSwimmersController {
   constructor(

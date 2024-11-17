@@ -12,6 +12,9 @@ import { IsPublic } from '../../decorators/is-public.decorator';
 import { PostReportService } from '../../../../domain/services/reports/templates/postReport.service';
 import { UseZodGuard } from 'nestjs-zod';
 import { postReportBodySchema } from '../../dtos/reports/postReportDTO.dto';
+import { Role } from '../../../../domain/enums/role.enum';
+import { Roles } from '../../decorators/role.decorator';
+import { GetReportByIdService } from '../../../../domain/services/reports/getReportById.service';
 
 @IsPublic()
 @Controller('reports')
@@ -19,9 +22,10 @@ export class ReportsController {
   constructor(
     private readonly PostReportService: PostReportService,
     private readonly reportsRepository: ReportsRepository,
+    private readonly getReportByIdService: GetReportByIdService,
   ) {}
 
-  @Get('invalid')
+  @Delete('invalid')
   async deleteInvalid() {
     return await this.reportsRepository.deleteInvalidReports();
   }
@@ -45,6 +49,17 @@ export class ReportsController {
     } catch (error) {
       console.log(error);
       return new InternalServerErrorException('Erro Interno');
+    }
+  }
+
+  @Roles(Role.Admin, Role.Teacher, Role.Responsible)
+  @Get(':reportId')
+  async getReportInformation(@Param('reportId') reportId: string) {
+    try {
+      const result = await this.getReportByIdService.execute(reportId);
+      return result;
+    } catch (e) {
+      throw new InternalServerErrorException('Erro Interno');
     }
   }
 }

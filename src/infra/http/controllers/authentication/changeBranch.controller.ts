@@ -17,7 +17,7 @@ import { ChangeBranchService } from '../../../../domain/services/authentication/
 export class ChangeBranchController {
   constructor(private readonly changeBranchService: ChangeBranchService) {}
 
-  @Roles(Role.teacher)
+  @Roles(Role.Teacher)
   @Post(':newBranchId')
   async login(
     @CurrentUser() user: AuthPayloadDTO,

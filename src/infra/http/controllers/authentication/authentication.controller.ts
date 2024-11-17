@@ -10,6 +10,7 @@ import { AuthenticationService } from '../../../../domain/services/authenticatio
 import {
   AuthDTO,
   AuthResponseDto,
+  ResponsibleAuthDTO,
 } from '../../../../infra/http/dtos/auth/login.dto';
 import { IsPublic } from '../../decorators/is-public.decorator';
 
@@ -21,11 +22,27 @@ export class AuthenticationController {
   @Post()
   async login(@Body() login: AuthDTO): Promise<AuthResponseDto> {
     try {
-      const result = await this.AuthenticationService.execute(login);
+      const result =
+        await this.AuthenticationService.authenticateEnterprise(login);
 
       return result;
     } catch (error) {
       throw new BadRequestException(error.message);
+    }
+  }
+
+  @Post('responsible')
+  async loginResponsible(
+    @Body() login: ResponsibleAuthDTO,
+  ): Promise<AuthResponseDto> {
+    try {
+      const result =
+        await this.AuthenticationService.authenticateResponsible(login);
+
+      return result;
+    } catch (error) {
+      console.log(error);
+      throw new UnauthorizedException(error.message);
     }
   }
 }
