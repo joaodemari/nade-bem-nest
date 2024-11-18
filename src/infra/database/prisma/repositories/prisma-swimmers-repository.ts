@@ -11,6 +11,7 @@ import { EnvService } from '../../../env/env.service';
 import capitalizeName from '../../../../core/utils/capitalizeName';
 import { ListAllSwimmersProps } from '../../../http/dtos/ListSwimmers.dto';
 import { swimmerAndReport } from '../../../../domain/services/swimmers.service';
+import { on } from 'events';
 
 @Injectable()
 export class PrismaSwimmersRepository implements SwimmersRepository {
@@ -159,8 +160,11 @@ export class PrismaSwimmersRepository implements SwimmersRepository {
   }> {
     const where: Prisma.SwimmerWhereInput = {
       branchId,
-      isActive: onlyActive,
     };
+
+    if (onlyActive) {
+      where.isActive = onlyActive;
+    }
 
     if (Number.isNaN(parseInt(search))) {
       where.name = {
@@ -172,10 +176,20 @@ export class PrismaSwimmersRepository implements SwimmersRepository {
     }
 
     if (teacherAuthId) {
-      where.Teacher = {
-        authId: teacherAuthId,
-      };
+      const { teacherNumber } = await this.prisma.teacher.findFirst({
+        where: {
+          authId: teacherAuthId,
+        },
+        select: {
+          teacherNumber: true,
+        },
+      });
+
+      where.teacherNumber = teacherNumber;
     }
+
+    console.log('where', where);
+
     const swimmers = await this.prisma.swimmer.findMany({
       where,
       skip: (page - 1) * perPage,

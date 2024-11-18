@@ -156,6 +156,8 @@ export class SwimmersService {
       teacherAuthId,
     });
 
+    console.log('swimmerscount', swimmers.length);
+
     swimmers.forEach((s) => {
       s.isFromThisPeriod =
         s.lastReportPeriodId && s.lastReportPeriodId === periodId;

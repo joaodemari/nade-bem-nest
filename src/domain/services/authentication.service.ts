@@ -128,6 +128,7 @@ export class AuthenticationService {
       if (!isPasswordValid) {
         throw new Error('Password is incorrect');
       }
+
       metadata = {
         memberNumber: memberNumber,
         role: auth.role as Role,
@@ -152,8 +153,6 @@ export class AuthenticationService {
         branchId: metadata.branchId,
       },
     };
-
-    console.log(response);
 
     return response;
   }

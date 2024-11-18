@@ -36,6 +36,7 @@ export class SwimmersController {
     @CurrentUser() user: AuthPayloadDTO,
   ) {
     if (user.role != Role.Admin) {
+      console.log('não é admin', user);
       query.teacherAuthId = user.authId;
     }
     try {
