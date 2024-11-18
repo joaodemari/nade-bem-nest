@@ -23,10 +23,15 @@ import { AuthPayloadDTO } from '../../dtos/auth/login.dto';
 import { UseZodGuard } from 'nestjs-zod';
 import { SwimmerInfoResponse } from '../../dtos/swimmers/swimmerInfo.dto';
 import { IsPublic } from '../../decorators/is-public.decorator';
+import { SwimmersRepository } from '../../../../domain/repositories/swimmers-repository';
 
 @Controller('swimmers')
 export class SwimmersController {
-  constructor(private readonly swimmerService: SwimmersService) {}
+  constructor(
+    private readonly swimmerService: SwimmersService,
+    private readonly swimmersRepo: SwimmersRepository,
+  ) {}
+
 
   @Get()
   @Roles(Role.Teacher, Role.Admin)

@@ -20,6 +20,45 @@ export class PrismaSwimmersRepository implements SwimmersRepository {
     private readonly periodsRepository: PeriodsRepository,
     private readonly env: EnvService,
   ) {}
+  async updateLevelOfSwimmers(): Promise<void> {
+    const swimmersWithLastReportApproved = await this.prisma.swimmer.findMany({
+      where: {
+        lastReportAccess: {
+          approved: true,
+        },
+      },
+      include: {
+        actualLevel: true,
+      },
+    });
+
+    await Promise.all(
+      swimmersWithLastReportApproved.map(async (swimmer) => {
+        if (swimmer.actualLevel && swimmer.actualLevel.levelNumber < 5) {
+          const nextLevel = await this.prisma.level.findFirst({
+            where: {
+              levelNumber: swimmer.actualLevel.levelNumber + 1,
+            },
+          });
+
+          if (nextLevel) {
+            await this.prisma.swimmer.update({
+              where: {
+                id: swimmer.id,
+              },
+              data: {
+                actualLevel: {
+                  connect: {
+                    id: nextLevel.id,
+                  },
+                },
+              },
+            });
+          }
+        }
+      }),
+    );
+  }
   async createSwimmerFromEvo(
     swimmer: SwimmerEvo,
     branchId: string,

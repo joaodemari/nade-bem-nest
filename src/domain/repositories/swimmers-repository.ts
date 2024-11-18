@@ -42,4 +42,6 @@ export abstract class SwimmersRepository {
     swimmer: SwimmerEvo,
     branchId: string,
   ): Promise<Swimmer>;
+
+  abstract updateLevelOfSwimmers(): Promise<void>;
 }
