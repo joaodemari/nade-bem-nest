@@ -241,8 +241,9 @@ export class PrismaReportsRepository implements ReportsRepository {
               areas: { include: { steps: { orderBy: { points: 'asc' } } } },
             },
           },
+          teacher: true,
           ReportAndSteps: { include: { step: true } },
-          swimmer: { include: { Teacher: true } },
+          swimmer: true,
           Period: true,
         },
       });
@@ -266,7 +267,7 @@ export class PrismaReportsRepository implements ReportsRepository {
         period: report.Period,
         observation: report.observation,
         swimmer: report.swimmer,
-        teacher: report.swimmer.Teacher,
+        teacher: report.teacher,
         areas: reportLevel.areas.map((area) => {
           return {
             ...area,
