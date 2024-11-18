@@ -5,7 +5,7 @@ export type SwimmerInfoResponse = {
     photoUrl: string;
   };
   reports: {
-    period: string;
+    periodName: string;
     teacherName: string;
     level: string;
     id: string;

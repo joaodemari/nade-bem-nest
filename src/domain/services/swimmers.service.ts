@@ -35,6 +35,7 @@ export class SwimmersService {
   ): Promise<SwimmerInfoResponse | null> {
     let result = await this.repository.findSwimmerAndReports(memberNumber);
 
+    console.log(result);
     if (!result) {
       const swimmerInEvo = await this.evoIntegrationService.findSwimmer(
         memberNumber,

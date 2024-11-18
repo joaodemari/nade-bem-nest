@@ -16,19 +16,19 @@ export class PostReportService {
   }): Promise<Report> {
     try {
       const { periodId, levelId, steps, observation, memberNumber, id } = props;
-      const level = await this.prisma.level.findFirst({
+      const levelOfReport = await this.prisma.level.findFirst({
         where: { id: levelId },
         include: { areas: { include: { steps: true } } },
       });
 
       const approved = steps.every((stepId) => {
-        const step = level?.areas
+        const step = levelOfReport?.areas
           .find((area) => area.steps.some((s) => s.id === stepId))
           ?.steps.find((s) => s.id === stepId);
         return step?.points === 3;
       });
 
-      if (!level) throw new Error('Level not found');
+      if (!levelOfReport) throw new Error('Level not found');
 
       const teacherNumber = await this.prisma.swimmer.findFirst({
         where: { memberNumber },
@@ -55,6 +55,20 @@ export class PostReportService {
         teacher: { connect: { teacherNumber: teacherNumber?.teacherNumber } },
       };
       let report: Report;
+
+      if (approved && levelOfReport.levelNumber < 5) {
+        const nextLevel = await this.prisma.level.findFirst({
+          where: { levelNumber: levelOfReport.levelNumber + 1 },
+          include: { areas: { include: { steps: true } } },
+        });
+
+        if (!nextLevel) throw new Error('Next level not found');
+
+        data = {
+          ...data,
+          level: { connect: { id: nextLevel.id } },
+        };
+      }
 
       if (id !== 'new') {
         await this.prisma.reportAndSteps.deleteMany({

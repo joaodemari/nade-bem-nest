@@ -301,6 +301,7 @@ export class PrismaSwimmersRepository implements SwimmersRepository {
             id: true,
             level: true,
             teacher: { select: { name: true, photoUrl: true } },
+            Period: true,
           },
         },
         actualLevel: true,
@@ -319,7 +320,7 @@ export class PrismaSwimmersRepository implements SwimmersRepository {
       },
       reports: swimmer.Report.map((report) => {
         return {
-          period: report.id,
+          periodName: report.Period.name,
           teacherName: capitalizeName(
             report.teacher?.name ?? swimmer.Teacher.name,
           ),
