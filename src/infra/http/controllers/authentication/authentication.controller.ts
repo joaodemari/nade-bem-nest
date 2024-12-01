@@ -6,7 +6,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { AuthenticationService } from '../../../../domain/services/authentication.service';
+import { AuthenticationService } from '../../../../domain/services/authentication/authentication.service';
 import {
   AuthDTO,
   AuthResponseDto,

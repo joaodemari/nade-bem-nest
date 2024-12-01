@@ -32,6 +32,12 @@ export class SwimmersController {
     private readonly swimmersRepo: SwimmersRepository,
   ) {}
 
+  @IsPublic()
+  @Get('update-swimmers')
+  async updateSwimmers() {
+    await this.swimmersRepo.updateLevelOfSwimmers();
+    return 'ok';
+  } 
 
   @Get()
   @Roles(Role.Teacher, Role.Admin)

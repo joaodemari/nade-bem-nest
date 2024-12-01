@@ -11,6 +11,8 @@ model Branch {
   id           String        @id @default(auto()) @map("_id") @db.ObjectId
   name         String
   apiKey       String        @unique
+  url           String       @unique
+  logoUrl     String
   swimmers     Swimmer[]
   levels       Level[]
   periods      Period[]

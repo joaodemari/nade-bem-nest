@@ -3,7 +3,7 @@ import { SwimmerEvo } from '../../../../domain/evo/entities/swimmer-evo-entity';
 import { SwimmerEvoMapper } from '../../../../domain/evo/mappers/swimmer-evo-mapper';
 import { PrismaService } from '../prisma.service';
 import { Injectable } from '@nestjs/common';
-import { Prisma, Swimmer } from '@prisma/client';
+import { Level, Prisma, Swimmer } from '@prisma/client';
 import PeriodsRepository from '../../../../domain/repositories/periods-repository';
 import { SwimmerInfoResponse } from '../../../http/dtos/swimmers/swimmerInfo.dto';
 import axios from 'axios';
@@ -21,41 +21,77 @@ export class PrismaSwimmersRepository implements SwimmersRepository {
     private readonly env: EnvService,
   ) {}
   async updateLevelOfSwimmers(): Promise<void> {
-    const swimmersWithLastReportApproved = await this.prisma.swimmer.findMany({
-      where: {
-        lastReportAccess: {
-          approved: true,
-        },
-      },
+    const swimmers = await this.prisma.swimmer.findMany({
       include: {
         actualLevel: true,
+        lastReportAccess: {
+          include: {
+            level: true,
+          },
+        },
       },
     });
 
-    await Promise.all(
-      swimmersWithLastReportApproved.map(async (swimmer) => {
-        if (swimmer.actualLevel && swimmer.actualLevel.levelNumber < 5) {
-          const nextLevel = await this.prisma.level.findFirst({
-            where: {
-              levelNumber: swimmer.actualLevel.levelNumber + 1,
-            },
-          });
+    const levelNumbers = [1, 2, 3, 4, 5];
+    const levelInformation = new Map<number, Level>();
 
-          if (nextLevel) {
-            await this.prisma.swimmer.update({
-              where: {
-                id: swimmer.id,
-              },
-              data: {
-                actualLevel: {
-                  connect: {
-                    id: nextLevel.id,
-                  },
-                },
-              },
-            });
-          }
+    for (let i = 0; i < levelNumbers.length; i++) {
+      const levelNumber = levelNumbers[i];
+
+      const level = await this.prisma.level.findFirst({
+        where: {
+          levelNumber,
+        },
+      });
+
+      if (level) levelInformation.set(levelNumber, level);
+    }
+
+    const swimmersByLevel = new Map<number, string[]>();
+
+    const numberOfSwimmers = swimmers.length;
+
+    swimmers.forEach((swimmer, i) => {
+      let levelToBeUpdated = 1;
+
+      if (swimmer.lastReportAccess === null) {
+        levelToBeUpdated = 1;
+      } else if (
+        swimmer.lastReportAccess.approved === true &&
+        swimmer.actualLevel.levelNumber < 5
+      ) {
+        levelToBeUpdated = swimmer.lastReportAccess.level.levelNumber + 1;
+      } else {
+        levelToBeUpdated = swimmer.lastReportAccess.level.levelNumber;
+      }
+
+      console.log(i + 'swimmer of' + numberOfSwimmers);
+
+      if (!swimmersByLevel.has(levelToBeUpdated)) {
+        swimmersByLevel.set(levelToBeUpdated, []);
+      }
+
+      swimmersByLevel.get(levelToBeUpdated)?.push(swimmer.id);
+    });
+
+    await Promise.all(
+      levelNumbers.map(async (levelNumber) => {
+        const levelToBeUpdated = levelInformation.get(levelNumber);
+        const swimmersToUpdate = swimmersByLevel.get(levelNumber);
+
+        if (!levelToBeUpdated || !swimmersToUpdate) {
+          console.log('something went wrong');
+          return;
         }
+
+        await this.prisma.swimmer.updateMany({
+          where: {
+            id: { in: swimmersToUpdate },
+          },
+          data: {
+            actualLevelName: levelInformation.get(levelNumber)?.name,
+          },
+        });
       }),
     );
   }

@@ -3,16 +3,16 @@ import {
   AuthResponseDto,
   authSchema,
   responsibleAuthSchema,
-} from '../../infra/http/dtos/auth/login.dto';
+} from '../../../infra/http/dtos/auth/login.dto';
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { Encrypter } from '../criptography/encrypter';
-import toRawString from '../../core/utils/toRawString';
-import { AuthRepository } from '../repositories/auth-repository';
-import { Role } from '../enums/role.enum';
+import { Encrypter } from '../../criptography/encrypter';
+import toRawString from '../../../core/utils/toRawString';
+import { AuthRepository } from '../../repositories/auth-repository';
+import { Role } from '../../enums/role.enum';
 import axios from 'axios';
-import { EvoIntegrationService } from './integration/evoIntegration.service';
-import { ResponsibleRepository } from '../repositories/responsibles-repository';
+import { EvoIntegrationService } from '../integration/evoIntegration.service';
+import { ResponsibleRepository } from '../../repositories/responsibles-repository';
 
 type AuthenticateUserUseCaseRequest = z.infer<typeof authSchema>;
 
@@ -43,7 +43,7 @@ export class AuthenticationService {
       branchId,
     });
 
-    console.log(evoLogin);
+    // console.log(evoLogin);
 
     // funcionou? pegar dados do banco nade bem
 

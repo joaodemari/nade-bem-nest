@@ -34,6 +34,8 @@ export class ResponsibleController {
     private readonly getSwimmersByResponsibleUseCase: GetSwimmersByResponsibleUseCase,
     private readonly evoIntegrationService: EvoIntegrationService,
   ) {}
+
+  
   @Get('swimmers')
   @Roles(Role.Teacher, Role.Admin, Role.Responsible)
   async findSwimmerInfo(

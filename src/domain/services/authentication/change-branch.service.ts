@@ -25,6 +25,7 @@ export class ChangeBranchService {
     private encrypter: Encrypter,
   ) {}
 
+
   async getTeachersBranches(authId: string) {
     const branches = await this.branchRepository.getBranchesByAuthId(authId);
 

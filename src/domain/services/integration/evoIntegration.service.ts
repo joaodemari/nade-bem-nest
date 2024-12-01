@@ -28,6 +28,19 @@ export class EvoIntegrationService {
     private readonly swimmersRepository: SwimmersRepository,
   ) {}
 
+  async getBranchLogo(branchId: string): Promise<void> {
+    const branchToken = await this.branchRepository.getBranchToken(branchId);
+    console.log(branchToken);
+    const evoApi = this.getEvoUrl({ token: branchToken });
+
+    try {
+      const { data } = await evoApi.get<any>(`/configuration/card-flags`);
+
+      console.log(data);
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  }
   async getResetPasswordLink({
     branchId,
     email,
@@ -114,6 +127,35 @@ export class EvoIntegrationService {
     const user: AuthPayloadDTO = {
       name: data.name,
       memberNumber: data.idMember,
+      branchId: props.branchId,
+      role: Role.Responsible,
+      email: props.email,
+      authId: null,
+    };
+    return user;
+  }
+
+  async fakeAuthenticateResponsible(props: {
+    email: string;
+    password: string;
+    branchId: string;
+  }): Promise<AuthPayloadDTO> {
+    console.error('Fake authenticate responsible');
+    const evoToken = await this.branchRepository.getBranchToken(props.branchId);
+    const evoApi = this.getEvoUrl({ token: evoToken });
+    const encodedEmail = encodeURIComponent(props.email);
+
+    const { data } = await evoApi.post<SwimmerEvo[]>(
+      '/members?email=' + encodedEmail,
+    );
+    if (data && data.length === 0) {
+      throw new Error('Invalid credentials');
+    }
+
+    const firstSwimmer = data[0];
+    const user: AuthPayloadDTO = {
+      name: firstSwimmer.firstName,
+      memberNumber: firstSwimmer.idMember,
       branchId: props.branchId,
       role: Role.Responsible,
       email: props.email,

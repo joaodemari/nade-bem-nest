@@ -9,6 +9,14 @@ export class PrismaBranchRepository implements BranchRepository {
   findManyByEnterpriseId(enterpriseId: string): Promise<Branch[]> {
     throw new Error('Method not implemented.');
   }
+
+  findByUrl(url: string): Promise<Branch> {
+    return this.prisma.branch.findFirst({
+      where: {
+        url: url,
+      },
+    });
+  }
   async getDefaultTeacher(branchId: string): Promise<number> {
     return 4;
   }

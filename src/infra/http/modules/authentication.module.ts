@@ -7,7 +7,7 @@ import { DatabaseModule } from '../../../infra/database/database.module';
 import { EnvModule } from '../../../infra/env/env.module';
 import { EnvService } from '../../../infra/env/env.service';
 import { AuthenticationController } from '../controllers/authentication/authentication.controller';
-import { AuthenticationService } from '../../../domain/services/authentication.service';
+import { AuthenticationService } from '../../../domain/services/authentication/authentication.service';
 import { CryptographyModule } from '../criptography/cryptography.module';
 import { JwtAuthGuard } from '../../../infra/auth/guards/jwt-auth.guard';
 import { APP_GUARD } from '@nestjs/core';
