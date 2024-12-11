@@ -42,6 +42,7 @@ export abstract class ReportsRepository {
         swimmer: Swimmer;
         teacher: Teacher;
         period: Period;
+        branch: Branch;
         areas: ({
           lastReportStepId: string;
           steps: Step[];
