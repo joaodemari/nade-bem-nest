@@ -1,4 +1,12 @@
-import { Area, Level, Period, Step, Swimmer, Teacher } from '@prisma/client';
+import {
+  Area,
+  Branch,
+  Level,
+  Period,
+  Step,
+  Swimmer,
+  Teacher,
+} from '@prisma/client';
 
 export abstract class ReportsRepository {
   abstract findReportsAreasStepsTeacherSwimmer(reportId: string): Promise<
@@ -51,6 +59,7 @@ export abstract class ReportsRepository {
         swimmer: Swimmer;
         teacher: Teacher;
         period: Period;
+        branch: Branch;
         areas: ({
           lastReportStepId: string;
           steps: Step[];

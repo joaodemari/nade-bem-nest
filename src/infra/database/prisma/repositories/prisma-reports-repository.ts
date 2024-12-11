@@ -1,4 +1,12 @@
-import { Area, Level, Period, Step, Swimmer, Teacher } from '@prisma/client';
+import {
+  Area,
+  Branch,
+  Level,
+  Period,
+  Step,
+  Swimmer,
+  Teacher,
+} from '@prisma/client';
 import { PrismaService } from '../prisma.service';
 import { ReportsRepository } from '../../../../domain/repositories/reports-repository';
 import { Injectable } from '@nestjs/common';
@@ -19,6 +27,7 @@ export class PrismaReportsRepository implements ReportsRepository {
         swimmer: Swimmer;
         teacher: Teacher;
         period: Period;
+        branch: Branch;
         areas: ({
           lastReportStepId: string;
           steps: Step[];
@@ -45,7 +54,11 @@ export class PrismaReportsRepository implements ReportsRepository {
           },
           ReportAndSteps: { include: { step: true } },
           swimmer: { include: { Teacher: true } },
-          Period: true,
+          Period: {
+            include: {
+              Branch: true,
+            },
+          },
           teacher: true,
         },
       });
@@ -58,6 +71,7 @@ export class PrismaReportsRepository implements ReportsRepository {
             swimmer: Swimmer;
             teacher: Teacher;
             period: Period;
+            branch: Branch;
             areas: ({
               lastReportStepId: string;
               steps: Step[];
@@ -92,6 +106,7 @@ export class PrismaReportsRepository implements ReportsRepository {
           reportLevel = report.level;
           return {
             ...reportLevel,
+            branch: report.Period.Branch,
             period: report.Period,
             observation: report.observation,
             swimmer: report.swimmer,

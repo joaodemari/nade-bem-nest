@@ -1,5 +1,6 @@
 import {
   Area,
+  Branch,
   Level,
   Period,
   Report,
@@ -27,6 +28,7 @@ export class PrintReportService {
       swimmer: Swimmer;
       teacher: Teacher;
       period: Period;
+      branch: Branch;
       areas: ({
         lastReportStepId: string;
         steps: Step[];
@@ -127,13 +129,15 @@ export class PrintReportService {
       .text(report.observation, 50, 210 + report.areas.length * 40 + 65);
 
     // Dados fictícios
-    const coordenador = 'Jovir Demari';
+    const coordenador =
+      report.branch.url == 'raiar-cinquentenario'
+        ? 'Coordenador: Jovir Demari'
+        : 'Coordenadora: Jaqueline Tiellet';
 
     const professor = `Prof. ${capitalizeName(report.teacher.name, 20)}`;
 
-    // Adicionando os dados ao PDF
     doc.fontSize(12).text(`Professor(a): ${professor}`, 50, 720);
-    doc.text(`Coordenador: ${coordenador}`, 300, 720);
+    doc.text(coordenador, 300, 720);
 
     const pathRaiarLogo = path.join(
       process.cwd(),
