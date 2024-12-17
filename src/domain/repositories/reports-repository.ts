@@ -9,6 +9,10 @@ import {
 } from '@prisma/client';
 
 export abstract class ReportsRepository {
+  abstract updateRightLevelsToReport(): Promise<void>;
+
+  abstract deleteReportById(reportId: string): Promise<void>;
+
   abstract findReportsAreasStepsTeacherSwimmer(reportId: string): Promise<
     | ({
         observation: string;
@@ -66,6 +70,21 @@ export abstract class ReportsRepository {
           steps: Step[];
         } & Area)[];
       } & Level)[]
+    | null
+  >;
+
+  abstract findOneById(props: { reportId: string }): Promise<
+    | ({
+        observation: string;
+        swimmer: Swimmer;
+        teacher: Teacher;
+        period: Period;
+        branch: Branch;
+        areas: ({
+          lastReportStepId: string;
+          steps: Step[];
+        } & Area)[];
+      } & Level)
     | null
   >;
 

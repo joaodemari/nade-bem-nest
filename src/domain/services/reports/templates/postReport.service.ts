@@ -56,20 +56,6 @@ export class PostReportService {
       };
       let report: Report;
 
-      if (approved && levelOfReport.levelNumber < 5) {
-        const nextLevel = await this.prisma.level.findFirst({
-          where: { levelNumber: levelOfReport.levelNumber + 1 },
-          include: { areas: { include: { steps: true } } },
-        });
-
-        if (!nextLevel) throw new Error('Next level not found');
-
-        data = {
-          ...data,
-          level: { connect: { id: nextLevel.id } },
-        };
-      }
-
       if (id !== 'new') {
         await this.prisma.reportAndSteps.deleteMany({
           where: { reportId: id },
@@ -81,6 +67,20 @@ export class PostReportService {
         });
         if (!report) throw new Error('Report not found');
       } else {
+        if (approved && levelOfReport.levelNumber < 5) {
+          const nextLevel = await this.prisma.level.findFirst({
+            where: { levelNumber: levelOfReport.levelNumber + 1 },
+            include: { areas: { include: { steps: true } } },
+          });
+
+          if (!nextLevel) throw new Error('Next level not found');
+
+          data = {
+            ...data,
+            level: { connect: { id: nextLevel.id } },
+          };
+        }
+
         report = await this.prisma.report.create({ data });
       }
       await this.prisma.swimmer.update({

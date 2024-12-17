@@ -15,6 +15,7 @@ import { postReportBodySchema } from '../../dtos/reports/postReportDTO.dto';
 import { Role } from '../../../../domain/enums/role.enum';
 import { Roles } from '../../decorators/role.decorator';
 import { GetReportByIdService } from '../../../../domain/services/reports/getReportById.service';
+import { DeleteReportByIdService } from '../../../../domain/services/reports/deleteReportById.service';
 
 @IsPublic()
 @Controller('reports')
@@ -23,7 +24,33 @@ export class ReportsController {
     private readonly PostReportService: PostReportService,
     private readonly reportsRepository: ReportsRepository,
     private readonly getReportByIdService: GetReportByIdService,
+    private readonly deleteReportByIdService: DeleteReportByIdService,
   ) {}
+
+  @IsPublic()
+  @Get(':reportId/delete')
+  async deleteReport(@Param('reportId') reportId: string) {
+    try {
+      console.log('deletando');
+      await this.deleteReportByIdService.execute(reportId);
+      return { message: 'Report deleted successfully' };
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException('Erro Interno');
+    }
+  }
+
+  @IsPublic()
+  @Get('updateByReportSteps')
+  async updateByReportSteps() {
+    try {
+      await this.reportsRepository.updateRightLevelsToReport();
+      return { message: 'Report deleted successfully' };
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException('Erro Interno');
+    }
+  }
 
   @Delete('invalid')
   async deleteInvalid() {

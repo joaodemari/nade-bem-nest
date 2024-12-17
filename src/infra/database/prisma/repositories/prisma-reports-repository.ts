@@ -3,6 +3,8 @@ import {
   Branch,
   Level,
   Period,
+  Report,
+  ReportAndSteps,
   Step,
   Swimmer,
   Teacher,
@@ -14,6 +16,161 @@ import { Injectable } from '@nestjs/common';
 @Injectable()
 export class PrismaReportsRepository implements ReportsRepository {
   constructor(private readonly prisma: PrismaService) {}
+
+  async findOneById({ reportId }: { reportId: string }): Promise<
+    | ({
+        observation: string;
+        swimmer: Swimmer;
+        teacher: Teacher;
+        period: Period;
+        branch: Branch;
+        areas: ({ lastReportStepId: string; steps: Step[] } & Area)[];
+      } & Level)
+    | null
+  > {
+    try {
+      let report = await this.prisma.report.findFirst({
+        where: {
+          id: reportId,
+        },
+        include: {
+          level: {
+            include: {
+              areas: { include: { steps: { orderBy: { points: 'asc' } } } },
+            },
+          },
+          ReportAndSteps: { include: { step: true } },
+          swimmer: { include: { Teacher: true } },
+          Period: {
+            include: {
+              Branch: true,
+            },
+          },
+          teacher: true,
+        },
+      });
+
+      let reportLevel: ({ areas: ({ steps: Step[] } & Area)[] } & Level) | null;
+      reportLevel = report.level;
+      return {
+        ...reportLevel,
+        branch: report.Period.Branch,
+        period: report.Period,
+        observation: report.observation,
+        swimmer: report.swimmer,
+        teacher: report.swimmer.Teacher,
+        areas: reportLevel.areas.map((area) => {
+          return {
+            ...area,
+            lastReportStepId:
+              report.ReportAndSteps.find((step) => step.step.areaId === area.id)
+                ?.stepId ?? '',
+          };
+        }),
+      };
+    } catch (e) {
+      console.log(e);
+      return null;
+    }
+  }
+
+  async updateRightLevelsToReport() {
+    const levelAndReports = new Map<string, string[]>();
+
+    await this.prisma.reportAndSteps
+      .findMany({
+        include: {
+          step: {
+            include: {
+              Area: {
+                include: {
+                  Level: true,
+                },
+              },
+            },
+          },
+        },
+      })
+      .then((reportAndSteps) => {
+        reportAndSteps.forEach((reportAndStep) => {
+          const levelId = reportAndStep.step.Area.Level.id;
+          if (levelAndReports.has(levelId)) {
+            levelAndReports.set(levelId, [
+              ...levelAndReports.get(levelId),
+              reportAndStep.reportId,
+            ]);
+          } else {
+            levelAndReports.set(levelId, [reportAndStep.reportId]);
+          }
+        });
+      });
+
+    const levels = Array.from(levelAndReports.keys());
+
+    Promise.all([
+      levels.forEach(async (levelId) => {
+        await this.prisma.report.updateMany({
+          where: {
+            id: {
+              in: levelAndReports.get(levelId),
+            },
+          },
+          data: {
+            levelId,
+          },
+        });
+      }),
+    ]);
+  }
+
+  async deleteReportById(reportId: string): Promise<void> {
+    const swimmer: Swimmer = await this.prisma.report
+      .findFirst({
+        where: {
+          id: reportId,
+        },
+        include: {
+          swimmer: true,
+        },
+      })
+      .then((report) => (report ? report.swimmer : null));
+
+    if (!swimmer) return;
+
+    await this.prisma.reportAndSteps.deleteMany({
+      where: {
+        reportId,
+      },
+    });
+
+    await this.prisma.report.delete({
+      where: {
+        id: reportId,
+      },
+    });
+
+    if (swimmer.lastReportId === reportId) {
+      const swimmerId = swimmer.id;
+
+      const lastReportCreated: Report | null = await this.prisma.report
+        .findFirst({
+          where: {
+            idSwimmer: swimmerId,
+          },
+          orderBy: { createdAt: 'desc' },
+        })
+        .then((report) => (report ? report : null));
+
+      await this.prisma.swimmer.update({
+        where: {
+          id: swimmerId,
+        },
+        data: {
+          lastReportId: lastReportCreated ? lastReportCreated.id : null,
+        },
+      });
+    }
+  }
 
   async findManyByTeacher({
     teacherId,
@@ -264,7 +421,7 @@ export class PrismaReportsRepository implements ReportsRepository {
             },
           },
           teacher: true,
-          ReportAndSteps: { include: { step: true } },
+          ReportAndSteps: { include: { step: { include: { Area: true } } } },
           swimmer: true,
           Period: true,
         },
@@ -273,6 +430,9 @@ export class PrismaReportsRepository implements ReportsRepository {
       const reportLevel:
         | ({ areas: ({ steps: Step[] } & Area)[] } & Level)
         | null = report.level;
+
+      console.log('reportAndSteps', report.ReportAndSteps);
+
       const reportLevelWithSelectedSteps:
         | ({
             observation: string;
@@ -291,11 +451,13 @@ export class PrismaReportsRepository implements ReportsRepository {
         swimmer: report.swimmer,
         teacher: report.teacher,
         areas: reportLevel.areas.map((area) => {
+          console.log('area', area);
+
           return {
             ...area,
-            lastReportStepId:
-              report.ReportAndSteps.find((step) => step.step.areaId === area.id)
-                ?.stepId ?? '',
+            lastReportStepId: report.ReportAndSteps.find(
+              (step) => step.step.areaId === area.id,
+            )?.stepId,
           };
         }),
       };

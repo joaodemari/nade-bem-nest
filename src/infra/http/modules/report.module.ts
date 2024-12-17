@@ -8,6 +8,9 @@ import { ReportPDFsByTeacherController } from '../controllers/report/PDFs/Report
 import { ReportPDFsByTeacherService } from '../../../domain/services/reports/ReportPDFsByTeacher.service';
 import { PrintReportService } from '../../../domain/services/reports/PrintReport.service';
 import { GetReportByIdService } from '../../../domain/services/reports/getReportById.service';
+import { DeleteReportByIdService } from '../../../domain/services/reports/deleteReportById.service';
+import { ReportPDFByIdService } from '../../../domain/services/reports/ReportPDFById.service';
+import { ReportPDFByIdController } from '../controllers/report/PDFs/ReportPDFById.controller';
 
 @Module({
   imports: [DatabaseModule],
@@ -15,6 +18,7 @@ import { GetReportByIdService } from '../../../domain/services/reports/getReport
     GetTemplateReportBySwimmerController,
     ReportsController,
     ReportPDFsByTeacherController,
+    ReportPDFByIdController,
   ],
   providers: [
     GetReportByIdService,
@@ -22,6 +26,8 @@ import { GetReportByIdService } from '../../../domain/services/reports/getReport
     PostReportService,
     ReportPDFsByTeacherService,
     PrintReportService,
+    DeleteReportByIdService,
+    ReportPDFByIdService,
   ],
 })
 export class ReportModule {}
