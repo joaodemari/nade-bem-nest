@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrintReportService } from './PrintReport.service';
 import { ReportsRepository } from '../../repositories/reports-repository';
 import capitalizeName from '../../../core/utils/capitalizeName';
+import nameToUrl from '../../../core/utils/name-to-url';
 const pdfDocument = require('pdfkit-table');
 
 @Injectable()
@@ -50,6 +51,6 @@ export class ReportPDFByIdService {
 
     console.log('pdf created');
 
-    return { buffer: buffer, swimmerName: capitalizeName(report.swimmer.name) };
+    return { buffer: buffer, swimmerName: '' };
   }
 }
