@@ -37,11 +37,12 @@ export class AuthenticationService {
     branchId,
   }: AuthenticateResponsibleUseCaseRequest) {
     // tentar o login no evo:
-    const evoLogin = await this.evoIntegrationService.authenticateResponsible({
-      email,
-      password,
-      branchId,
-    });
+    const evoLogin =
+      await this.evoIntegrationService.fakeAuthenticateResponsible({
+        email,
+        password,
+        branchId,
+      });
 
     // console.log(evoLogin);
 
@@ -50,16 +51,17 @@ export class AuthenticationService {
     let responsible =
       await this.responsibleRepository.findByEmailWithAuth(email);
 
+    // Não existe no Nade Bem? Criar Responsible no Nade Bem -> puxar todos os alunos relacionados aquele email
+    const swimmers = await this.evoIntegrationService.getSwimmersByEmail({
+      email,
+      branchId,
+    });
+    await this.evoIntegrationService.upsertManySwimmers({
+      swimmers,
+      branchId,
+    });
+
     if (!responsible) {
-      // Não existe no Nade Bem? Criar Responsible no Nade Bem -> puxar todos os alunos relacionados aquele email
-      const swimmers = await this.evoIntegrationService.getSwimmersByEmail({
-        email,
-        branchId,
-      });
-      await this.evoIntegrationService.upsertManySwimmers({
-        swimmers,
-        branchId,
-      });
       // criar usuário
       responsible = await this.responsibleRepository.createResponsibleAndAuth({
         email,
@@ -69,6 +71,15 @@ export class AuthenticationService {
         branchId,
       });
       console.log('criou responsible', responsible);
+    } else {
+      responsible = await this.responsibleRepository.updateResponsibleAndAuth({
+        email,
+        password,
+        name: evoLogin.name,
+        swimmerNumbers: swimmers.map((swimmer) => swimmer.idMember),
+        branchId,
+        id: responsible.id,
+      });
     }
     // Já existe no Nade Bem? Puxar Responsible
     // Criar um token com os dados do Responsible

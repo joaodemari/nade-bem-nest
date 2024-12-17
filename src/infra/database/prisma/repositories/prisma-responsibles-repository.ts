@@ -5,6 +5,7 @@ import {
   createResponsibleAndAuth,
   ResponsibleRepository,
   SwimmerWithPeriod,
+  updateResponsibleAndAuth,
 } from '../../../../domain/repositories/responsibles-repository';
 import { Role } from '../../../../domain/enums/role.enum';
 
@@ -63,6 +64,36 @@ export class PrismaResponsiblesRepository implements ResponsibleRepository {
             email: payload.email,
             password: payload.password,
             role: Role.Responsible,
+            name: payload.name,
+          },
+        },
+        swimmers: {
+          connect: payload.swimmerNumbers.map((swimmerNumber) => ({
+            memberNumber: swimmerNumber,
+          })),
+        },
+      },
+      include: {
+        auth: true,
+      },
+    });
+  }
+
+  updateResponsibleAndAuth(
+    payload: updateResponsibleAndAuth,
+  ): Promise<Responsible & { auth: Auth }> {
+    return this.prisma.responsible.update({
+      where: {
+        id: payload.id,
+      },
+      data: {
+        branch: {
+          connect: {
+            id: payload.branchId,
+          },
+        },
+        auth: {
+          update: {
             name: payload.name,
           },
         },

@@ -10,4 +10,5 @@ export interface SwimmerEvo {
   photoUrl: string;
   nameEmployeeInstructor: string;
   idEmployeeConsultant: number;
+  responsibles: any;
 }

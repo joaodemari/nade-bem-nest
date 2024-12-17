@@ -10,6 +10,10 @@ export abstract class ResponsibleRepository {
   abstract getSwimmersByResponsible(
     responsibleAuthId: string,
   ): Promise<SwimmerWithPeriod[]>;
+
+  abstract updateResponsibleAndAuth(
+    payload: updateResponsibleAndAuth,
+  ): Promise<Responsible & { auth: Auth }>;
 }
 
 export type SwimmerWithPeriod = Swimmer & {
@@ -23,3 +27,7 @@ export interface createResponsibleAndAuth {
   swimmerNumbers: number[];
   branchId: string;
 }
+
+export type updateResponsibleAndAuth = createResponsibleAndAuth & {
+  id: string;
+};

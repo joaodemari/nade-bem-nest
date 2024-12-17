@@ -32,16 +32,6 @@ export class BranchController {
   }
 
   @IsPublic()
-  @Get('logo/:branchId')
-  async getBranchLogo(@Param('branchId') branchId: string) {
-    try {
-      return await this.evoService.getBranchLogo(branchId);
-    } catch (error) {
-      throw new BadRequestException(error.message);
-    }
-  }
-
-  @IsPublic()
   @Get('find-by-url/:url')
   @UseGuards(new ZodGuard('params', z.object({ url: z.string() })))
   async findByUrl(@Param('url') url: string) {

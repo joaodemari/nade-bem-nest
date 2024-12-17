@@ -28,19 +28,6 @@ export class EvoIntegrationService {
     private readonly swimmersRepository: SwimmersRepository,
   ) {}
 
-  async getBranchLogo(branchId: string): Promise<void> {
-    const branchToken = await this.branchRepository.getBranchToken(branchId);
-    console.log(branchToken);
-    const evoApi = this.getEvoUrl({ token: branchToken });
-
-    try {
-      const { data } = await evoApi.get<any>(`/configuration/card-flags`);
-
-      console.log(data);
-    } catch (error) {
-      throw new Error(error.message);
-    }
-  }
   async getResetPasswordLink({
     branchId,
     email,
@@ -85,13 +72,16 @@ export class EvoIntegrationService {
     const { data } = await evoApi.get<SwimmerEvo[]>(
       '/members?email=' + encodedEmail,
     );
-    return data.filter((swimmer) => {
+
+    const swimmers: SwimmerEvo[] = data.filter((swimmer) => {
       const swimmerBirthDate = new Date(swimmer.birthDate);
       const swimmerAge =
         new Date().getFullYear() - swimmerBirthDate.getFullYear();
 
       return swimmerAge <= 14;
     });
+
+    return swimmers;
   }
 
   upsertManySwimmers({
@@ -145,9 +135,10 @@ export class EvoIntegrationService {
     const evoApi = this.getEvoUrl({ token: evoToken });
     const encodedEmail = encodeURIComponent(props.email);
 
-    const { data } = await evoApi.post<SwimmerEvo[]>(
+    const { data } = await evoApi.get<SwimmerEvo[]>(
       '/members?email=' + encodedEmail,
     );
+
     if (data && data.length === 0) {
       throw new Error('Invalid credentials');
     }
