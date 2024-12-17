@@ -37,12 +37,11 @@ export class AuthenticationService {
     branchId,
   }: AuthenticateResponsibleUseCaseRequest) {
     // tentar o login no evo:
-    const evoLogin =
-      await this.evoIntegrationService.fakeAuthenticateResponsible({
-        email,
-        password,
-        branchId,
-      });
+    const evoLogin = await this.evoIntegrationService.authenticateResponsible({
+      email,
+      password,
+      branchId,
+    });
 
     // console.log(evoLogin);
 
