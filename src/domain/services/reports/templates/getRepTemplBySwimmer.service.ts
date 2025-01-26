@@ -38,9 +38,10 @@ export class GetRepTemplBySwimmerService {
     const lastReport =
       await this.reportsRepository.findReportAreasSelectedSteps(lastReportId);
     if (lastReport.approved) {
-      reportLevel = await this.levelsRepository.findByLevelNumber(
-        lastReport.level.levelNumber,
-      );
+      reportLevel =
+        await this.levelsRepository.findLevelAndAreasAndStepsByLevelNumber(
+          lastReport.level.levelNumber,
+        );
     } else {
       reportLevel = { ...lastReport.level, areas: lastReport.areas };
       console.log(reportLevel);

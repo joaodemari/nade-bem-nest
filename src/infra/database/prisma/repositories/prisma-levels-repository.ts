@@ -1,14 +1,34 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { LevelsRepository } from '../../../../domain/repositories/levels-repository';
 import { PrismaService } from '../prisma.service';
+import { Area, Level, Step } from '@prisma/client';
+import { CustomPrismaService } from 'nestjs-prisma';
+import { PRISMA_INJECTION_TOKEN } from '../../PrismaDatabase.module';
+import { ExtendedPrismaClient } from '../prisma.extension';
 
 @Injectable()
-export class PrismaLevelsRepository extends LevelsRepository {
-  constructor(private readonly prisma: PrismaService) {
-    super();
+export class PrismaLevelsRepository implements LevelsRepository {
+  private readonly prisma: ExtendedPrismaClient;
+
+  constructor(
+    @Inject(forwardRef(() => PRISMA_INJECTION_TOKEN))
+    prismaService: CustomPrismaService<ExtendedPrismaClient>,
+  ) {
+    this.prisma = prismaService.client;
   }
 
-  async findLevelAndAreasAndSteps(levelId: string) {
+  async findLevelById(levelId: string): Promise<
+    Level & {
+      areas: (Area & { steps: Step[] })[];
+    }
+  > {
+    return await this.prisma.level.findFirst({
+      where: { id: levelId },
+      include: { areas: { include: { steps: true } } },
+    });
+  }
+
+  async findLevelAndAreasAndStepsByLevelId(levelId: string) {
     const level = await this.prisma.level.findUnique({
       where: { id: levelId },
       include: {
@@ -41,7 +61,7 @@ export class PrismaLevelsRepository extends LevelsRepository {
     return firstLevel;
   }
 
-  findByLevelNumber(levelNumber: number): Promise<
+  findLevelAndAreasAndStepsByLevelNumber(levelNumber: number): Promise<
     {
       areas: ({
         steps: {

@@ -3,9 +3,10 @@ import { Auth } from '@prisma/client';
 import { AuthRepository } from '../../src/domain/repositories/auth-repository';
 import { TeachersRepository } from '../../src/domain/repositories/teachers-repository';
 import { AdminsRepository } from '../../src/domain/repositories/admins-repository';
-import { BranchTeacherRepository } from './inMemory-branch-Teachers-repository';
-import { EnterpriseRepository } from './inMemory-enterprises-repository';
 import { BranchRepository } from '../../src/domain/repositories/branches-repository';
+import { BranchTeacherRepository } from '../../src/domain/repositories/branch-teacher-repository';
+import { EnterpriseRepository } from '../../src/domain/repositories/enterprise-repository';
+import { authsDummyDB } from './dummyDB';
 
 @Injectable()
 export class InMemoryAuthRepository implements AuthRepository {
@@ -17,20 +18,10 @@ export class InMemoryAuthRepository implements AuthRepository {
     private readonly branchRepository: BranchRepository,
   ) {}
 
-  auths: Auth[] = [
-    {
-      email: 'joaodemari1@gmail.com',
-      id: 'joaodemari1',
-      name: 'João Professor',
-      password: '123456',
-      resetToken: null,
-      role: 'admin',
-    },
-  ];
+  auths: Auth[] = authsDummyDB;
 
-  async findByEmail(
-    email: string,
-  ): Promise<{ auth: Auth; memberNumber: number | null; branchId: string }> {
+  async findByEmail(email: string): Promise<{ auth: Auth; branchId: string }> {
+    console.log('finding by email');
     const auth = this.auths.find((a) => a.email === email);
 
     if (!auth) return;
@@ -49,8 +40,8 @@ export class InMemoryAuthRepository implements AuthRepository {
     } else {
       const admin = await this.adminsRepository.findByAuthId(auth.id);
       if (!admin) throw new Error('Admin not found');
-      const enterprise = await this.enterprisesRepository.findByAdminId(
-        admin.id,
+      const enterprise = await this.enterprisesRepository.findById(
+        admin.enterpriseId,
       );
       if (!enterprise) throw new Error('This admin has no enterprises');
       const branches = await this.branchRepository.findManyByEnterpriseId(
@@ -65,7 +56,6 @@ export class InMemoryAuthRepository implements AuthRepository {
 
     return {
       auth,
-      memberNumber: teacher?.teacherNumber ?? null,
       branchId,
     };
   }

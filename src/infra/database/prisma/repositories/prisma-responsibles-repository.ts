@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { Auth, Prisma, Responsible, Swimmer } from '@prisma/client';
 import {
@@ -8,10 +8,20 @@ import {
   updateResponsibleAndAuth,
 } from '../../../../domain/repositories/responsibles-repository';
 import { Role } from '../../../../domain/enums/role.enum';
+import { CustomPrismaService } from 'nestjs-prisma';
+import { PRISMA_INJECTION_TOKEN } from '../../PrismaDatabase.module';
+import { ExtendedPrismaClient } from '../prisma.extension';
 
 @Injectable()
 export class PrismaResponsiblesRepository implements ResponsibleRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly prisma: ExtendedPrismaClient;
+
+  constructor(
+    @Inject(forwardRef(() => PRISMA_INJECTION_TOKEN))
+    prismaService: CustomPrismaService<ExtendedPrismaClient>,
+  ) {
+    this.prisma = prismaService.client;
+  }
   async getSwimmersByResponsible(
     responsibleAuthId: string,
   ): Promise<SwimmerWithPeriod[]> {

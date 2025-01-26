@@ -42,9 +42,6 @@ export class AuthenticationService {
       password,
       branchId,
     });
-
-    // console.log(evoLogin);
-
     // funcionou? pegar dados do banco nade bem
 
     let responsible =
@@ -97,7 +94,6 @@ export class AuthenticationService {
         token: token,
         name: metadata.name,
         email: metadata.email,
-        memberNumber: metadata.memberNumber ?? null,
         role: metadata.role,
         authId: metadata.authId,
         branchId: metadata.branchId,
@@ -121,7 +117,6 @@ export class AuthenticationService {
     );
 
     let metadata: {
-      memberNumber: number;
       role: Role;
       email: string;
       branchId: string;
@@ -132,7 +127,7 @@ export class AuthenticationService {
     if (!userInformation) {
       throw new Error('User not found');
     } else {
-      const { auth, memberNumber, branchId } = userInformation;
+      const { auth, branchId } = userInformation;
       if (!auth) throw new Error('User not found');
       const isPasswordValid = auth.password === password;
       if (!isPasswordValid) {
@@ -140,13 +135,13 @@ export class AuthenticationService {
       }
 
       metadata = {
-        memberNumber: memberNumber,
         role: auth.role as Role,
         email: auth.email,
         branchId,
         name: auth.name,
         authId: auth.id,
       };
+      console.log(metadata);
     }
 
     const token = await this.encrypter.encrypt(metadata);
@@ -157,7 +152,6 @@ export class AuthenticationService {
         token: token,
         name: metadata.name,
         email: metadata.email,
-        memberNumber: metadata.memberNumber ?? null,
         role: metadata.role,
         authId: metadata.authId,
         branchId: metadata.branchId,

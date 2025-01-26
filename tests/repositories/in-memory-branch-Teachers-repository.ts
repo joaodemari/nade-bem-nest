@@ -1,4 +1,5 @@
 import { BranchTeacher } from '@prisma/client';
+import { BranchTeacherRepository } from '../../src/domain/repositories/branch-teacher-repository';
 
 export class InMemoryBranchTeachersRepository
   implements BranchTeacherRepository
@@ -9,8 +10,4 @@ export class InMemoryBranchTeachersRepository
   async findManyByTeacherId(teacherId: string): Promise<BranchTeacher[]> {
     return this.branchTeachers.filter((bt) => bt.teacherId === teacherId);
   }
-}
-
-export interface BranchTeacherRepository {
-  findManyByTeacherId(teacherId: string): Promise<BranchTeacher[]>;
 }

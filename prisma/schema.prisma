@@ -29,11 +29,13 @@ model BranchTeacher{
   branchId     String        @db.ObjectId
   teacher      Teacher       @relation(fields: [teacherId], references: [id])
   teacherId    String        @db.ObjectId
+  teacherNumber Int 
+
+   @@unique([branchId, teacherNumber])
 }
 
 model Teacher {
   id            String    @id @default(auto()) @map("_id") @db.ObjectId
-  teacherNumber Int       @unique
   name          String
   email         String    @unique
   photoUrl      String?
@@ -44,6 +46,10 @@ model Teacher {
   Report        Report[]
   swimmers      Swimmer[]
   branchTeachers      BranchTeacher[]
+
+  TeacherPeriodGroupSelection TeacherPeriodGroupSelection[] 
+
+  @@unique([id, authId])
 }
 
 model Auth {
@@ -56,6 +62,15 @@ model Auth {
   role      String
   name      String
   Responsible Responsible?
+  sessions   Session[]
+}
+
+model Session{
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  token     String @unique
+  createdAt DateTime  @default(now())
+  auth      Auth @relation(fields: [authId], references: [id])
+  authId    String @db.ObjectId
 }
 
 model Responsible{
@@ -92,11 +107,12 @@ model Period {
   report    Report[]
   Branch    Branch?  @relation(fields: [branchId], references: [id])
   branchId  String?  @db.ObjectId
+
+  TeacherPeriodGroupSelection TeacherPeriodGroupSelection[] 
 }
 
 model Swimmer {
   id           String @id @default(auto()) @map("_id") @db.ObjectId
-  memberNumber Int    @unique
 
   actualLevel     Level  @relation(fields: [actualLevelName], references: [name])
   actualLevelName String
@@ -112,14 +128,51 @@ model Swimmer {
   lastReportId String?   @db.ObjectId @unique
   lastReportAccess Report? @relation(fields: [lastReportId], references: [id], name: "SwimmerLastReport") 
 
-  Teacher       Teacher? @relation(fields: [teacherNumber], references: [teacherNumber])
-  teacherNumber Int?
+  Teacher       Teacher? @relation(fields: [teacherId], references: [id])
+  teacherId     String?    @db.ObjectId  @unique
 
   Branch        Branch      @relation(fields: [branchId], references: [id])
   branchId      String      @db.ObjectId
 
+  //TODO: Remove the unique 
+  memberNumber Int  @unique 
+  memberNumberStr String 
+
   responsibleId String? @db.ObjectId
   Responsible   Responsible? @relation(fields: [responsibleId], references: [id])  
+
+  periodTeacherSelections SwimmerPeriodTeacherSelection[]
+}
+
+model TeacherPeriodGroupSelection{
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  period Period @relation(fields: [periodId], references: [id])
+  periodId String @db.ObjectId
+   
+  teacher Teacher @relation(fields: [teacherId, teacherAuthId], references: [id, authId])
+  teacherId String @db.ObjectId
+  teacherAuthId String @db.ObjectId
+  swimmerSelections SwimmerPeriodTeacherSelection[]
+
+  @@unique([teacherId, periodId])
+  @@unique([teacherAuthId, periodId])
+  @@unique([id, periodId])
+}
+
+model SwimmerPeriodTeacherSelection{
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  swimmer Swimmer @relation(fields: [swimmerId], references: [id])
+  swimmerId String @db.ObjectId
+
+  teacherPeriodGroupSelection TeacherPeriodGroupSelection @relation(fields: [teacherPeriodGroupSelectionId, periodId], references: [id, periodId]) 
+  teacherPeriodGroupSelectionId String @db.ObjectId 
+  periodId String @db.ObjectId
+
+  @@unique([swimmerId, periodId])
+  @@unique([teacherPeriodGroupSelectionId, swimmerId])
+
+  Report Report?
 }
 
 model Report {
@@ -145,6 +198,9 @@ model Report {
 
   Period   Period? @relation(fields: [periodId], references: [id])
   periodId String? @db.ObjectId
+
+  swimmerTeacherPeriodSelection SwimmerPeriodTeacherSelection? @relation(fields: [swimmerTeacherPeriodSelectionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  swimmerTeacherPeriodSelectionId String? @db.ObjectId @unique
 }
 
 model ReportAndSteps {

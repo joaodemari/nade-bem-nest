@@ -5,6 +5,7 @@ import { BranchRepository } from '../../repositories/branches-repository';
 import { Role } from '../../enums/role.enum';
 import { SwimmersRepository } from '../../repositories/swimmers-repository';
 import { SwimmerEvo } from '../../evo/entities/swimmer-evo-entity';
+import { QuerySwimmersParamsDTO } from '../swimmers.service';
 
 interface authEvoResponse {
   idMember: number;
@@ -27,6 +28,34 @@ export class EvoIntegrationService {
     private readonly branchRepository: BranchRepository,
     private readonly swimmersRepository: SwimmersRepository,
   ) {}
+
+  private toQuery(search: string) {
+    const searchNumber = parseInt(search);
+    if (isNaN(searchNumber)) {
+      return `name=${search}`;
+    } else {
+      return `idsMembers=${searchNumber}`;
+    }
+  }
+
+  async searchSwimmers({
+    branchId,
+    search,
+  }: QuerySwimmersParamsDTO): Promise<SwimmerEvo[]> {
+    const branchToken = await this.branchRepository.getBranchToken(branchId);
+    const evoApi = this.getEvoUrl({ token: branchToken });
+
+    try {
+      const swimmers: SwimmerEvo[] = await evoApi
+        .get<SwimmerEvo[]>(`members?${this.toQuery(search)}`)
+        .then((response) => {
+          return response.data;
+        });
+      return swimmers;
+    } catch (err) {
+      console.log(err);
+    }
+  }
 
   async getResetPasswordLink({
     branchId,

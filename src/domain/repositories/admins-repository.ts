@@ -1,5 +1,5 @@
 import { Admin } from '@prisma/client';
 
-export interface AdminsRepository {
-  findByAuthId(authId: string): Promise<Admin | null>;
+export abstract class AdminsRepository {
+  abstract findByAuthId(authId: string): Promise<Admin | null>;
 }

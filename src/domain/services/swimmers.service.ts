@@ -87,9 +87,45 @@ export class SwimmersService {
       throw new Error('Erro ao transferir aluno');
     }
 
-    await this.repository.updateSwimmerTeacher(swimmerNumber, teacherNumber);
+    // TODO: add teacherId here
+    await this.repository.updateSwimmerTeacher(
+      swimmerNumber,
+      'TODO: ADD teacherId Here',
+    );
 
     return true;
+  }
+
+  async querySwimmers({
+    periodId,
+    branchId,
+    search,
+    teacherAuthId,
+  }: QuerySwimmersParamsDTO): Promise<SwimmerAndIsFromSelection[]> {
+    const swimmersInNadeBem = await this.repository.querySwimmers({
+      branchId,
+      search,
+    });
+
+    return swimmersInNadeBem.map((s) => {
+      return {
+        ...s,
+        isFromSelection: s.periodTeacherSelections.some(
+          (selection) =>
+            selection.periodId === periodId &&
+            selection.teacherPeriodGroupSelection.teacherAuthId ===
+              teacherAuthId,
+        ),
+      };
+    });
+
+    // TODO: Implementar a busca de alunos no evo
+    // if (swimmersInNadeBem.length > 0) {
+    //   return swimmersInNadeBem;
+    // }
+    // const swimmerSearchResult =
+    //   await this.evoIntegrationService.searchSwimmers(search);
+    // return swimmerSearchResult.slice(0, 10);
   }
 
   async listAllPaginated({
@@ -171,6 +207,15 @@ export class SwimmersService {
       swimmersWithoutReports: 0,
     };
   }
-
-  
 }
+
+export type QuerySwimmersParamsDTO = {
+  search: string;
+  branchId: string;
+  periodId: string;
+  teacherAuthId: string;
+};
+
+export type SwimmerAndIsFromSelection = Swimmer & {
+  isFromSelection: boolean;
+};

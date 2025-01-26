@@ -24,6 +24,7 @@ import { UseZodGuard } from 'nestjs-zod';
 import { SwimmerInfoResponse } from '../../dtos/swimmers/swimmerInfo.dto';
 import { IsPublic } from '../../decorators/is-public.decorator';
 import { SwimmersRepository } from '../../../../domain/repositories/swimmers-repository';
+import { z } from 'zod';
 
 @Controller('swimmers')
 export class SwimmersController {
@@ -32,12 +33,37 @@ export class SwimmersController {
     private readonly swimmersRepo: SwimmersRepository,
   ) {}
 
+  @Roles(Role.Teacher)
+  @Get('query')
+  @UseZodGuard(
+    'query',
+    z.object({
+      periodId: z.string(),
+      search: z.string().optional(),
+    }),
+  )
+  async query(
+    @CurrentUser() user: AuthPayloadDTO,
+    @Query()
+    query: {
+      periodId: string;
+      search: string;
+    },
+  ) {
+    return this.swimmerService.querySwimmers({
+      branchId: user.branchId,
+      search: query.search,
+      teacherAuthId: user.authId,
+      periodId: query.periodId,
+    });
+  }
+
   @IsPublic()
   @Get('update-swimmers')
   async updateSwimmers() {
     await this.swimmersRepo.updateLevelOfSwimmers();
     return 'ok';
-  } 
+  }
 
   @Get()
   @Roles(Role.Teacher, Role.Admin)

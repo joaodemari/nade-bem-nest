@@ -1,10 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../infra/database/prisma/prisma.service';
 import { Prisma, Report } from '@prisma/client';
+import { LevelsRepository } from '../../../repositories/levels-repository';
+import { SwimmersRepository } from '../../../repositories/swimmers-repository';
+import { ReportsRepository } from '../../../repositories/reports-repository';
 
 @Injectable()
 export class PostReportService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly levelRepository: LevelsRepository,
+    private readonly swimmersRepository: SwimmersRepository,
+    private readonly reportsRepository: ReportsRepository,
+  ) {}
 
   async handle(props: {
     levelId: string;
@@ -16,10 +23,8 @@ export class PostReportService {
   }): Promise<Report> {
     try {
       const { periodId, levelId, steps, observation, memberNumber, id } = props;
-      const levelOfReport = await this.prisma.level.findFirst({
-        where: { id: levelId },
-        include: { areas: { include: { steps: true } } },
-      });
+      const levelOfReport =
+        await this.levelRepository.findLevelAndAreasAndStepsByLevelId(levelId);
 
       const approved = steps.every((stepId) => {
         const step = levelOfReport?.areas
@@ -30,10 +35,8 @@ export class PostReportService {
 
       if (!levelOfReport) throw new Error('Level not found');
 
-      const teacherNumber = await this.prisma.swimmer.findFirst({
-        where: { memberNumber },
-        select: { teacherNumber: true },
-      });
+      const swimmer =
+        await this.swimmersRepository.findByMemberNumber(memberNumber);
 
       let data: Prisma.ReportCreateInput = {
         approved,
@@ -52,26 +55,19 @@ export class PostReportService {
         observation,
         swimmer: { connect: { memberNumber } },
         Period: { connect: { id: periodId } },
-        teacher: { connect: { teacherNumber: teacherNumber?.teacherNumber } },
+        teacher: { connect: { id: swimmer.teacherId } },
       };
       let report: Report;
 
       if (id !== 'new') {
-        await this.prisma.reportAndSteps.deleteMany({
-          where: { reportId: id },
-        });
-
-        report = await this.prisma.report.update({
-          data,
-          where: { id },
-        });
+        report = await this.reportsRepository.updateReportById(data, id);
         if (!report) throw new Error('Report not found');
       } else {
         if (approved && levelOfReport.levelNumber < 5) {
-          const nextLevel = await this.prisma.level.findFirst({
-            where: { levelNumber: levelOfReport.levelNumber + 1 },
-            include: { areas: { include: { steps: true } } },
-          });
+          const nextLevel =
+            await this.levelRepository.findLevelAndAreasAndStepsByLevelNumber(
+              levelOfReport.levelNumber + 1,
+            );
 
           if (!nextLevel) throw new Error('Next level not found');
 
@@ -81,23 +77,12 @@ export class PostReportService {
           };
         }
 
-        report = await this.prisma.report.create({ data });
+        report = await this.reportsRepository.create(data);
       }
-      await this.prisma.swimmer.update({
-        where: { memberNumber: memberNumber },
-        data: {
-          actualLevel: {
-            connect: {
-              id: levelId,
-            },
-          },
-          lastReport: new Date(),
-          lastReportAccess: {
-            connect: {
-              id: report.id,
-            },
-          },
-        },
+      await this.swimmersRepository.updateLevelAndReport({
+        memberNumber,
+        levelId,
+        reportId: report.id,
       });
       return report;
     } catch (e) {
@@ -106,3 +91,9 @@ export class PostReportService {
     }
   }
 }
+
+export type UpdateLevelAndReportProps = {
+  memberNumber: number;
+  levelId: string;
+  reportId: string;
+};

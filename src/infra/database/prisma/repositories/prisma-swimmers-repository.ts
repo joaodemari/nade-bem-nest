@@ -2,24 +2,109 @@ import { SwimmersRepository } from '../../../../domain/repositories/swimmers-rep
 import { SwimmerEvo } from '../../../../domain/evo/entities/swimmer-evo-entity';
 import { SwimmerEvoMapper } from '../../../../domain/evo/mappers/swimmer-evo-mapper';
 import { PrismaService } from '../prisma.service';
-import { Injectable } from '@nestjs/common';
-import { Level, Prisma, Swimmer } from '@prisma/client';
-import PeriodsRepository from '../../../../domain/repositories/periods-repository';
-import { SwimmerInfoResponse } from '../../../http/dtos/swimmers/swimmerInfo.dto';
-import axios from 'axios';
-import { EnvService } from '../../../env/env.service';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import {
+  Level,
+  Prisma,
+  Swimmer,
+  SwimmerPeriodTeacherSelection,
+  Teacher,
+  TeacherPeriodGroupSelection,
+} from '@prisma/client';
 import capitalizeName from '../../../../core/utils/capitalizeName';
 import { ListAllSwimmersProps } from '../../../http/dtos/ListSwimmers.dto';
 import { swimmerAndReport } from '../../../../domain/services/swimmers.service';
-import { on } from 'events';
+import { UpdateLevelAndReportProps } from '../../../../domain/services/reports/templates/postReport.service';
+import { CustomPrismaService } from 'nestjs-prisma';
+import { PRISMA_INJECTION_TOKEN } from '../../PrismaDatabase.module';
+import { ExtendedPrismaClient } from '../prisma.extension';
+
+export type SwimmerAndSelctionsAndGroupSelectionsAndTeacher = Swimmer & {
+  periodTeacherSelections: (SwimmerPeriodTeacherSelection & {
+    teacherPeriodGroupSelection: TeacherPeriodGroupSelection & {
+      teacher: Teacher;
+    };
+  })[];
+};
 
 @Injectable()
 export class PrismaSwimmersRepository implements SwimmersRepository {
+  private readonly prisma: ExtendedPrismaClient;
+
   constructor(
-    private readonly prisma: PrismaService,
-    private readonly periodsRepository: PeriodsRepository,
-    private readonly env: EnvService,
-  ) {}
+    @Inject(forwardRef(() => PRISMA_INJECTION_TOKEN))
+    prismaService: CustomPrismaService<ExtendedPrismaClient>,
+  ) {
+    this.prisma = prismaService.client;
+  }
+
+  async updateLevelAndReport({
+    memberNumber,
+    levelId,
+    reportId,
+  }: UpdateLevelAndReportProps) {
+    await this.prisma.swimmer.update({
+      where: { memberNumber: memberNumber },
+      data: {
+        actualLevel: {
+          connect: {
+            id: levelId,
+          },
+        },
+        lastReport: new Date(),
+        lastReportAccess: {
+          connect: {
+            id: reportId,
+          },
+        },
+      },
+    });
+  }
+
+  async findByMemberNumber(memberNumber: number) {
+    return await this.prisma.swimmer.findFirst({
+      where: { memberNumber },
+    });
+  }
+
+  async querySwimmers({
+    branchId,
+    search,
+  }: {
+    branchId: string;
+    search: string;
+  }): Promise<SwimmerAndSelctionsAndGroupSelectionsAndTeacher[]> {
+    return await this.prisma.swimmer.findMany({
+      where: {
+        branchId,
+        OR: [
+          {
+            memberNumberStr: {
+              startsWith: search,
+            },
+          },
+          {
+            name: {
+              contains: search,
+              mode: 'insensitive',
+            },
+          },
+        ],
+      },
+      include: {
+        periodTeacherSelections: {
+          include: {
+            teacherPeriodGroupSelection: {
+              include: {
+                teacher: true,
+              },
+            },
+          },
+        },
+      },
+      take: 10,
+    });
+  }
   async updateLevelOfSwimmers(): Promise<void> {
     const swimmers = await this.prisma.swimmer.findMany({
       include: {
@@ -110,15 +195,27 @@ export class PrismaSwimmersRepository implements SwimmersRepository {
   ): Promise<void> {
     if (swimmers.length === 0) return;
 
+    const teacherNumbersMap = await this.buildTeacherNumbersMap(branchId);
+
     await Promise.all(
       swimmers.map(async (swimmer) => {
+        const teacherId = teacherNumbersMap.get(swimmer.idEmployeeInstructor);
+
         await this.prisma.swimmer
           .upsert({
             where: {
               memberNumber: swimmer.idMember,
             },
-            update: SwimmerEvoMapper.updateInPersistence(swimmer, branchId),
-            create: SwimmerEvoMapper.toPersistence(swimmer, branchId),
+            update: SwimmerEvoMapper.updateInPersistence(
+              swimmer,
+              branchId,
+              teacherId,
+            ),
+            create: SwimmerEvoMapper.toPersistence(
+              swimmer,
+              branchId,
+              teacherId,
+            ),
           })
           .catch((error) => {
             console.error(error);
@@ -127,35 +224,59 @@ export class PrismaSwimmersRepository implements SwimmersRepository {
     );
   }
 
+  buildTeacherNumbersMap = async (branchId: string) => {
+    const teachers = await this.prisma.branchTeacher.findMany({
+      where: {
+        branchId,
+      },
+    });
+
+    const teacherNumbersMap = new Map<number, string>();
+
+    teachers.forEach((teacher) => {
+      teacherNumbersMap.set(teacher.teacherNumber, teacher.id);
+    });
+
+    return teacherNumbersMap;
+  };
+
   async updateSwimmerTeacher(
     swimmerNumber: number,
-    teacherNumber: number,
+    teacherAuthId: string,
   ): Promise<void> {
     await this.prisma.swimmer.update({
       where: {
         memberNumber: swimmerNumber,
       },
       data: {
-        teacherNumber,
+        Teacher: {
+          connect: {
+            authId: teacherAuthId,
+          },
+        },
       },
     });
   }
 
-  async countSwimmers(teacherNumber: number): Promise<number> {
+  async countSwimmers(teacherAuthId: string): Promise<number> {
     return this.prisma.swimmer.count({
       where: {
-        teacherNumber,
+        Teacher: {
+          authId: teacherAuthId,
+        },
       },
     });
   }
 
   async countSwimmersWithoutReport(
-    teacherNumber: number,
+    teacherAuthId: string,
     periodStartDate: Date,
   ): Promise<number> {
     const swimmers = await this.prisma.swimmer.findMany({
       where: {
-        teacherNumber,
+        Teacher: {
+          authId: teacherAuthId,
+        },
       },
     });
 
@@ -173,7 +294,11 @@ export class PrismaSwimmersRepository implements SwimmersRepository {
       },
       select: {
         memberNumber: true,
-        teacherNumber: true,
+        Teacher: {
+          select: {
+            authId: true,
+          },
+        },
       },
     });
 
@@ -251,16 +376,9 @@ export class PrismaSwimmersRepository implements SwimmersRepository {
     }
 
     if (teacherAuthId) {
-      const { teacherNumber } = await this.prisma.teacher.findFirst({
-        where: {
-          authId: teacherAuthId,
-        },
-        select: {
-          teacherNumber: true,
-        },
-      });
-
-      where.teacherNumber = teacherNumber;
+      where.Teacher = {
+        authId: teacherAuthId,
+      };
     }
 
     console.log('where', where);
@@ -311,8 +429,9 @@ export class PrismaSwimmersRepository implements SwimmersRepository {
   async upsertOneFromEvo(
     swimmer: SwimmerEvo,
     branchId: string,
+    teacherId: string,
   ): Promise<Swimmer | null> {
-    const data = SwimmerEvoMapper.toPersistence(swimmer, branchId);
+    const data = SwimmerEvoMapper.toPersistence(swimmer, branchId, teacherId);
     return this.prisma.swimmer
       .upsert({
         where: {

@@ -9,6 +9,8 @@ import { BranchModule } from './modules/branch.module';
 import { PeriodModule } from './modules/periods.module';
 import { SwimmerModule } from './modules/swimmer.module';
 import { ResponsibleModule } from './modules/responsible.module';
+import { SelectionModule } from './modules/selection.module';
+import { SessionsModule } from './modules/sessions.module';
 
 @Module({
   imports: [
@@ -21,6 +23,8 @@ import { ResponsibleModule } from './modules/responsible.module';
     PeriodModule,
     SwimmerModule,
     ResponsibleModule,
+    SelectionModule,
+    SessionsModule
   ],
   controllers: [CheckController],
   providers: [],

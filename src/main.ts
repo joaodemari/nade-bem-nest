@@ -9,7 +9,7 @@ async function bootstrap() {
     allowedHeaders: '*',
     origin: '*',
   });
-  await app.listen(3000);
+  await app.listen(9010);
 
   if (module.hot) {
     module.hot.accept();

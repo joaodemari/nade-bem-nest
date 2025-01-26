@@ -3,6 +3,7 @@ import {
   Branch,
   Level,
   Period,
+  Prisma,
   Report,
   ReportAndSteps,
   Step,
@@ -11,11 +12,43 @@ import {
 } from '@prisma/client';
 import { PrismaService } from '../prisma.service';
 import { ReportsRepository } from '../../../../domain/repositories/reports-repository';
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { CustomPrismaService } from 'nestjs-prisma';
+import { PRISMA_INJECTION_TOKEN } from '../../PrismaDatabase.module';
+import { ExtendedPrismaClient } from '../prisma.extension';
 
 @Injectable()
 export class PrismaReportsRepository implements ReportsRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly prisma: ExtendedPrismaClient;
+
+  constructor(
+    @Inject(forwardRef(() => PRISMA_INJECTION_TOKEN))
+    prismaService: CustomPrismaService<ExtendedPrismaClient>,
+  ) {
+    this.prisma = prismaService.client;
+  }
+
+  async create(data: Prisma.ReportCreateInput) {
+    return await this.prisma.report.create({ data });
+  }
+
+  async updateReportById(
+    data: Prisma.ReportCreateInput,
+    id: string,
+  ): Promise<Report> {
+    await this.deleteReportStepsByReportId(id);
+
+    return await this.prisma.report.update({
+      data,
+      where: { id },
+    });
+  }
+
+  async deleteReportStepsByReportId(id: string): Promise<void> {
+    await this.prisma.reportAndSteps.deleteMany({
+      where: { reportId: id },
+    });
+  }
 
   async findOneById({ reportId }: { reportId: string }): Promise<
     | ({
