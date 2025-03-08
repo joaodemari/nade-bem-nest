@@ -25,24 +25,18 @@ export class PrismaResponsiblesRepository implements ResponsibleRepository {
   async getSwimmersByResponsible(
     responsibleAuthId: string,
   ): Promise<SwimmerWithPeriod[]> {
+    throw new Error('Method not implemented.');
     const swimmer = await this.prisma.swimmer.findMany({
       where: {
         Responsible: {
           authId: responsibleAuthId,
         },
       },
-      include: {
-        lastReportAccess: {
-          include: {
-            Period: true,
-          },
-        },
-      },
     });
 
     return swimmer.map((swimmer) => ({
       ...swimmer,
-      period: swimmer.lastReportAccess?.Period,
+      period: null,
     }));
   }
 

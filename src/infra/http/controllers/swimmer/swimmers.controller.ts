@@ -25,6 +25,7 @@ import { SwimmerInfoResponse } from '../../dtos/swimmers/swimmerInfo.dto';
 import { IsPublic } from '../../decorators/is-public.decorator';
 import { SwimmersRepository } from '../../../../domain/repositories/swimmers-repository';
 import { z } from 'zod';
+import { Teacher } from '@prisma/client';
 
 @Controller('swimmers')
 export class SwimmersController {
@@ -157,8 +158,37 @@ export class SwimmersController {
 
   @Get(':id')
   @Roles(Role.Teacher, Role.Admin, Role.Responsible)
-  async findSwimmerInfo(
+  async findSwimmerInfoById(
     @Param('id') id: string,
+  ): Promise<BadRequestException | SwimmerInfoResponse> {
+    try {
+      let result: {
+        swimmer: {
+          name: string;
+          actualLevelName: string;
+          photoUrl: string;
+          teacher: Teacher;
+        };
+        reports: {
+          periodName: string;
+          teacherName: string;
+          level: string;
+          id: string;
+        }[];
+      } = await this.swimmerService.findSwimmerInfoById(id);
+      if (!result) {
+        throw new BadRequestException('Swimmer not found');
+      }
+      return result;
+    } catch (e) {
+      throw new BadRequestException(e.message);
+    }
+  }
+
+  @Get(':memberNumber')
+  @Roles(Role.Teacher, Role.Responsible)
+  async findSwimmerInfo(
+    @Param('memberNumber') id: string,
     @CurrentUser() user: AuthPayloadDTO,
   ): Promise<BadRequestException | SwimmerInfoResponse> {
     try {
@@ -168,8 +198,9 @@ export class SwimmersController {
       let result: {
         swimmer: {
           name: string;
-          actualLevel: string;
+          actualLevelName: string;
           photoUrl: string;
+          teacher: Teacher;
         };
         reports: {
           periodName: string;
@@ -180,6 +211,7 @@ export class SwimmersController {
       } = await this.swimmerService.findSwimmerInfo(
         memberNumber,
         user.branchId,
+        user.authId,
       );
       if (!result) {
         throw new BadRequestException('Swimmer not found');

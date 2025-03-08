@@ -7,7 +7,7 @@ import { ListAllSwimmersProps } from '../../src/infra/http/dtos/ListSwimmers.dto
 import { SwimmerEvo } from '../../src/domain/evo/entities/swimmer-evo-entity';
 import { SwimmerInfoResponse } from '../../src/infra/http/dtos/swimmers/swimmerInfo.dto';
 import { swimmerAndReport } from '../../src/domain/services/swimmers.service';
-import { UpdateLevelAndReportProps } from '../../src/domain/services/reports/templates/postReport.service';
+import { UpdateLevelAndReportProps } from '../../src/domain/services/reports/templates/create-report.service';
 import { SwimmerAndSelctionsAndGroupSelectionsAndTeacher } from '../../src/infra/database/prisma/repositories/prisma-swimmers-repository';
 
 @Injectable()
@@ -16,12 +16,20 @@ export class InMemorySwimmersRepository implements SwimmersRepository {
     private readonly periodsRepository: PeriodsRepository,
     private readonly env: EnvService,
   ) {}
+  findSwimmerAndReportsById(
+    swimmerId: string,
+  ): Promise<SwimmerInfoResponse | null> {
+    throw new Error('Method not implemented.');
+  }
+
   updateLevelAndReport(props: UpdateLevelAndReportProps): Promise<void> {
     throw new Error('Method not implemented.');
   }
+
   findByMemberNumber(memberNumber: number): Promise<Swimmer> {
     throw new Error('Method not implemented.');
   }
+
   querySwimmers(props: {
     branchId: string;
     search: string;

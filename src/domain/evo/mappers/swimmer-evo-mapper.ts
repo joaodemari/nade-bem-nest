@@ -5,7 +5,7 @@ export class SwimmerEvoMapper {
   static toPersistence(
     swimmerEvo: SwimmerEvo,
     branchId: string,
-    teacherId?: string,
+    teacherId: string,
   ): Prisma.SwimmerCreateInput {
     return {
       memberNumberStr: swimmerEvo.idMember.toString(),

@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { PrismaDatabaseModule } from './PrismaDatabase.module';
 import { InMemoryDatabaseModule } from './InMemoryDatabase.module';
+import { PrismaDatabaseModule } from './PrismaDatabase.module';
 
 @Module({
-  imports: [InMemoryDatabaseModule],
-  exports: [InMemoryDatabaseModule],
+  imports: [PrismaDatabaseModule],
+  exports: [PrismaDatabaseModule],
 })
 export class DatabaseModule {}

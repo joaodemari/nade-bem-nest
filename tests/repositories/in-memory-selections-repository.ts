@@ -1,9 +1,11 @@
 import {
+  Report,
   Swimmer,
   SwimmerPeriodTeacherSelection,
   TeacherPeriodGroupSelection,
 } from '@prisma/client';
 import {
+  SelectionReportInfoSelectedSteps,
   SelectionsRepository,
   SwimmerAndTeacher,
 } from '../../src/domain/repositories/selections-repository';
@@ -15,24 +17,40 @@ import {
   GetSwimmersFromPeriodAndTeacherProps,
 } from '../../src/domain/services/selection/selection.service';
 import { SelectionSwimmersByTeacherQueryDTO } from '../../src/infra/http/dtos/swimmers/selection-swimmers/selection-swimmers.dto';
+import {
+  swimmerPeriodTeacherSelectionsDummyDB,
+  teacherPeriodGroupSelectionsDummyDB,
+} from './dummyDB';
 
 export class InMemorySelectionsRepository implements SelectionsRepository {
+  selections: SwimmerPeriodTeacherSelection[] =
+    swimmerPeriodTeacherSelectionsDummyDB;
+
+  groupSelections: TeacherPeriodGroupSelection[] =
+    teacherPeriodGroupSelectionsDummyDB;
+
   constructor() {}
+  findById(id: string): Promise<SelectionReportInfoSelectedSteps | null> {
+    throw new Error('Method not implemented.');
+  }
+  findLastSelectionBySwimmerIdAndSelectionId(selectionId: string, swimmerId: string): Promise<SelectionReportInfoSelectedSteps | null> {
+    throw new Error('Method not implemented.');
+  }
   createGroupSelection(
     teacherId: string,
     periodId: string,
   ): Promise<
     TeacherPeriodGroupSelection & {
-      swimmerSelections: { swimmer: SwimmerAndTeacher }[];
+      swimmerSelections: { swimmer: SwimmerAndTeacher; report: Report }[];
     }
   > {
     throw new Error('Method not implemented.');
   }
-  findWithSwimmersFromPeriodAndTeacher(
+  findAllWithSwimmersFromPeriodAndTeacher(
     props: GetSwimmersFromPeriodAndTeacherProps,
   ): Promise<
     TeacherPeriodGroupSelection & {
-      swimmerSelections: { swimmer: SwimmerAndTeacher }[];
+      swimmerSelections: { swimmer: SwimmerAndTeacher; report: Report }[];
     }
   > {
     throw new Error('Method not implemented.');

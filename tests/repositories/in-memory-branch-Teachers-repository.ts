@@ -1,10 +1,11 @@
 import { BranchTeacher } from '@prisma/client';
 import { BranchTeacherRepository } from '../../src/domain/repositories/branch-teacher-repository';
+import { branchTeachersDummyDB } from './dummyDB';
 
 export class InMemoryBranchTeachersRepository
   implements BranchTeacherRepository
 {
-  branchTeachers: BranchTeacher[] = [];
+  branchTeachers: BranchTeacher[] = branchTeachersDummyDB;
 
   constructor() {}
   async findManyByTeacherId(teacherId: string): Promise<BranchTeacher[]> {

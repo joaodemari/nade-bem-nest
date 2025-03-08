@@ -1,5 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { SelectionsRepository, SwimmerAndTeacher } from '../../repositories/selections-repository';
+import {
+  SelectionsRepository,
+  SwimmerAndTeacher,
+} from '../../repositories/selections-repository';
 import { Swimmer, TeacherPeriodGroupSelection } from '@prisma/client';
 import { FindSelectionGroupWithSwimmersResponseDTO } from '../../../infra/http/controllers/selection/selection.controller';
 import {
@@ -7,10 +10,16 @@ import {
   SelectionSwimmersQueryDTO,
 } from '../../../infra/http/dtos/swimmers/selection-swimmers/selection-swimmers.dto';
 import { PageNumberPaginationMeta } from 'prisma-extension-pagination';
+import { EvoIntegrationService } from '../integration/evoIntegration.service';
+import { SwimmersRepository } from '../../repositories/swimmers-repository';
 
 @Injectable()
 export class SelectionService {
-  constructor(private readonly selectionsRepository: SelectionsRepository) {}
+  constructor(
+    private readonly selectionsRepository: SelectionsRepository,
+    private readonly integrationService: EvoIntegrationService,
+    private readonly swimmersRepository: SwimmersRepository,
+  ) {}
 
   async resetSwimmersFromSelection(
     props: ResetSwimmersFromGroupSelectionProps,
@@ -33,6 +42,31 @@ export class SelectionService {
       data: swimmers,
       meta,
     };
+  }
+
+  async addEvoSwimmerToSelection(props: {
+    memberId: number;
+    groupSelectionId: string;
+    branchId: string;
+    teacherAuthId: string;
+  }) {
+    const swimmerInEvo = await this.integrationService.findSwimmer({
+      memberId: props.memberId,
+      branchId: props.branchId,
+    });
+
+    const swimmer = await this.swimmersRepository.createSwimmerFromEvo(
+      swimmerInEvo,
+      props.branchId,
+      props.teacherAuthId,
+    );
+
+    console.log(swimmer);
+
+    await this.addSwimmerToSelection({
+      swimmerId: swimmer.id,
+      groupSelectionId: props.groupSelectionId,
+    });
   }
 
   async addSwimmerToSelection(props: UpdateSwimmerFromSelectionProps) {
@@ -67,7 +101,7 @@ export class SelectionService {
     props: GetSwimmersFromPeriodAndTeacherProps,
   ): Promise<FindSelectionGroupWithSwimmersResponseDTO> {
     let selectionGroup =
-      await this.selectionsRepository.findWithSwimmersFromPeriodAndTeacher(
+      await this.selectionsRepository.findAllWithSwimmersFromPeriodAndTeacher(
         props,
       );
 
@@ -80,7 +114,6 @@ export class SelectionService {
 
     return {
       groupSelection: selectionGroup,
-      swimmers: selectionGroup?.swimmerSelections?.map((s) => s.swimmer) ?? [],
     };
   }
 }

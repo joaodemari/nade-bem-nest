@@ -12,6 +12,8 @@ import { Role } from '../../../../domain/enums/role.enum';
 import { SelectionService } from '../../../../domain/services/selection/selection.service';
 import { Swimmer, TeacherPeriodGroupSelection } from '@prisma/client';
 import { SwimmerAndTeacher } from '../../../../domain/repositories/selections-repository';
+import { CurrentUser } from '../../decorators/current-user.decorator';
+import { AuthPayloadDTO } from '../../dtos/auth/login.dto';
 
 @Controller('selections')
 export class SelectionController {
@@ -30,6 +32,26 @@ export class SelectionController {
       });
     } catch (error) {
       return new HttpException(error.message, 400);
+    }
+  }
+
+  @Roles(Role.Teacher)
+  @Post(':groupSelectionId/swimmer/:memberId/evo')
+  async addSwimmerEvoToSelection(
+    @Param('groupSelectionId') groupSelectionId: string,
+    @Param('memberId') memberId: number,
+    @CurrentUser() user: AuthPayloadDTO,
+  ) {
+    try {
+      await this.selectionService.addEvoSwimmerToSelection({
+        memberId,
+        groupSelectionId,
+        branchId: user.branchId,
+        teacherAuthId: user.authId,
+      });
+    } catch (error) {
+      console.log(error);
+      throw new HttpException(error.message, 400);
     }
   }
 
@@ -70,5 +92,4 @@ export class SelectionController {
 
 export type FindSelectionGroupWithSwimmersResponseDTO = {
   groupSelection: TeacherPeriodGroupSelection;
-  swimmers: SwimmerAndTeacher[];
 };

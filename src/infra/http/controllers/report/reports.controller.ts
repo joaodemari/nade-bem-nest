@@ -6,12 +6,13 @@ import {
   InternalServerErrorException,
   Param,
   Post,
+  Put,
 } from '@nestjs/common';
 import { ReportsRepository } from '../../../../domain/repositories/reports-repository';
 import { IsPublic } from '../../decorators/is-public.decorator';
-import { PostReportService } from '../../../../domain/services/reports/templates/postReport.service';
+import { CreateReportService } from '../../../../domain/services/reports/templates/create-report.service';
 import { UseZodGuard } from 'nestjs-zod';
-import { postReportBodySchema } from '../../dtos/reports/postReportDTO.dto';
+import { postReportBodySchema as createReportBodySchema } from '../../dtos/reports/postReportDTO.dto';
 import { Role } from '../../../../domain/enums/role.enum';
 import { Roles } from '../../decorators/role.decorator';
 import { GetReportByIdService } from '../../../../domain/services/reports/getReportById.service';
@@ -21,7 +22,7 @@ import { DeleteReportByIdService } from '../../../../domain/services/reports/del
 @Controller('reports')
 export class ReportsController {
   constructor(
-    private readonly PostReportService: PostReportService,
+    private readonly PostReportService: CreateReportService,
     private readonly reportsRepository: ReportsRepository,
     private readonly getReportByIdService: GetReportByIdService,
     private readonly deleteReportByIdService: DeleteReportByIdService,
@@ -57,27 +58,44 @@ export class ReportsController {
     return await this.reportsRepository.deleteInvalidReports();
   }
 
-  @Post(':reportId')
-  @UseZodGuard('body', postReportBodySchema)
-  async createReport(
-    @Param('reportId') reportId: string,
-    @Body() body: postReportBodySchema,
-  ) {
+  @Post()
+  @UseZodGuard('body', createReportBodySchema)
+  async createReport(@Body() body: createReportBodySchema) {
     try {
-      const { periodId, levelId, steps, observation, memberNumber } = body;
+      const { selectionId, levelId, steps, observation } = body;
       return await this.PostReportService.handle({
         levelId,
-        memberNumber,
         observation,
-        steps,
-        id: reportId,
-        periodId,
+        stepIds: steps,
+        selectionId: selectionId,
       });
     } catch (error) {
       console.log(error);
       return new InternalServerErrorException('Erro Interno');
     }
   }
+
+  // @Put()
+  // @UseZodGuard('body', createReportBodySchema)
+  // async updateReport(
+  //   @Param('reportId') reportId: string,
+  //   @Body() body: createReportBodySchema,
+  // ) {
+  //   try {
+  //     const { periodId, levelId, steps, observation, memberNumber } = body;
+  //     return await this.PostReportService.handle({
+  //       levelId,
+  //       memberNumber,
+  //       observation,
+  //       steps,
+  //       id: reportId,
+  //       periodId,
+  //     });
+  //   } catch (error) {
+  //     console.log(error);
+  //     return new InternalServerErrorException('Erro Interno');
+  //   }
+  // }
 
   @Roles(Role.Admin, Role.Teacher, Role.Responsible)
   @Get(':reportId')

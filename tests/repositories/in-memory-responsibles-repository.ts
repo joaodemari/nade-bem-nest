@@ -5,8 +5,11 @@ import {
   SwimmerWithPeriod,
   updateResponsibleAndAuth,
 } from '../../src/domain/repositories/responsibles-repository';
+import { responsiblesDummyDB } from './dummyDB';
 
 export class InMemoryResponsibleRepository implements ResponsibleRepository {
+  responsibles: Responsible[] = responsiblesDummyDB;
+
   findByEmailWithAuth(email: string): Promise<Responsible & { auth: Auth }> {
     throw new Error('Method not implemented.');
   }

@@ -8,3 +8,21 @@ export type getLevelTemplateResponse =
       } & Area)[];
     } & Level)
   | null;
+
+
+  export type LevelAreasSteps = {
+    areas: ({
+      steps: Step[];
+    } & Area)[];
+  } & Level;
+  
+  export type ReportLevelAreaStepsSelected = {
+    observation: string;
+    approved: boolean;
+    level: Level & {
+      areas: (Area & {
+        steps: Step[];
+        selectedStepId: string;
+      })[];
+    };
+  };

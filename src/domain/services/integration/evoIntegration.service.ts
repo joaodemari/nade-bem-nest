@@ -41,13 +41,18 @@ export class EvoIntegrationService {
   async searchSwimmers({
     branchId,
     search,
-  }: QuerySwimmersParamsDTO): Promise<SwimmerEvo[]> {
+    take = 10,
+  }: {
+    branchId: string;
+    search: string;
+    take: number;
+  }): Promise<SwimmerEvo[]> {
     const branchToken = await this.branchRepository.getBranchToken(branchId);
     const evoApi = this.getEvoUrl({ token: branchToken });
 
     try {
       const swimmers: SwimmerEvo[] = await evoApi
-        .get<SwimmerEvo[]>(`members?${this.toQuery(search)}`)
+        .get<SwimmerEvo[]>(`members?${this.toQuery(search)}&take=${take}`)
         .then((response) => {
           return response.data;
         });
@@ -218,12 +223,20 @@ export class EvoIntegrationService {
     }
   }
 
-  async findSwimmer(swimmerId: number, evoToken: string): Promise<SwimmerEvo> {
+  async findSwimmer({
+    memberId,
+    branchId,
+  }: {
+    memberId: number;
+    branchId: string;
+  }): Promise<SwimmerEvo> {
+    const evoToken = await this.branchRepository.getBranchToken(branchId);
+
     const evoApi = this.getEvoUrl({ token: evoToken });
-    console.log(swimmerId);
+    console.log(memberId);
     try {
       const swimmerInfo = await evoApi
-        .get<SwimmerEvo[]>('members?idsMembers=' + swimmerId)
+        .get<SwimmerEvo[]>('members?idsMembers=' + memberId)
         .then((response) => {
           return response.data[0];
         });

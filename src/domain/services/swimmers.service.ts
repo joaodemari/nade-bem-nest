@@ -9,10 +9,12 @@ import {
 import PeriodsRepository from '../repositories/periods-repository';
 import cleanContains from '../../core/utils/cleanContains';
 import { SwimmerInfoResponse } from '../../infra/http/dtos/swimmers/swimmerInfo.dto';
-import { Report, Swimmer } from '@prisma/client';
+import { Report, Swimmer, Teacher } from '@prisma/client';
 import { UpdateSwimmerTeacherProps } from '../../infra/http/dtos/swimmers/updateSwimmer/updateSwimmerTeacher.dto';
 import { BranchRepository } from '../repositories/branches-repository';
 import { EvoIntegrationService } from './integration/evoIntegration.service';
+import { SwimmerAndTeacher } from '../repositories/selections-repository';
+import { SwimmerEvo } from '../evo/entities/swimmer-evo-entity';
 
 export type swimmerAndReport = Swimmer & {
   isFromThisPeriod?: boolean;
@@ -29,20 +31,33 @@ export class SwimmersService {
     private readonly evoIntegrationService: EvoIntegrationService,
   ) {}
 
+  async findSwimmerInfoById(
+    swimmerId: string,
+  ): Promise<SwimmerInfoResponse | null> {
+    let result = await this.repository.findSwimmerAndReportsById(swimmerId);
+
+    return result;
+  }
+
   async findSwimmerInfo(
     memberNumber: number,
     branchId: string,
+    teacherAuthId: string,
   ): Promise<SwimmerInfoResponse | null> {
     let result = await this.repository.findSwimmerAndReports(memberNumber);
 
     console.log(result);
     if (!result) {
-      const swimmerInEvo = await this.evoIntegrationService.findSwimmer(
-        memberNumber,
+      const swimmerInEvo = await this.evoIntegrationService.findSwimmer({
+        memberId: memberNumber,
         branchId,
-      );
+      });
 
-      await this.repository.createSwimmerFromEvo(swimmerInEvo, branchId);
+      await this.repository.createSwimmerFromEvo(
+        swimmerInEvo,
+        branchId,
+        teacherAuthId,
+      );
 
       result = await this.repository.findSwimmerAndReports(memberNumber);
     }
@@ -69,10 +84,10 @@ export class SwimmersService {
     const { swimmerNumber, teacherNumber, branchId } = props;
     const branchToken = await this.branchRepository.getBranchToken(branchId);
 
-    const swimmerInformation = await this.evoIntegrationService.findSwimmer(
-      swimmerNumber,
-      branchToken,
-    );
+    const swimmerInformation = await this.evoIntegrationService.findSwimmer({
+      memberId: swimmerNumber,
+      branchId,
+    });
 
     const swimmerTransfer =
       await this.evoIntegrationService.transferSwimmerToTeacher({
@@ -101,15 +116,29 @@ export class SwimmersService {
     branchId,
     search,
     teacherAuthId,
-  }: QuerySwimmersParamsDTO): Promise<SwimmerAndIsFromSelection[]> {
+  }: QuerySwimmersParamsDTO): Promise<{
+    nadeBem: SwimmerAndTeacherAndIsFromSelection[];
+    evo: SwimmerEvo[];
+  }> {
     const swimmersInNadeBem = await this.repository.querySwimmers({
       branchId,
       search,
     });
 
-    return swimmersInNadeBem.map((s) => {
+    if (swimmersInNadeBem.length === 0) {
+      const swimmerSearchResult =
+        await this.evoIntegrationService.searchSwimmers({
+          search,
+          branchId,
+          take: 10,
+        });
+      return { nadeBem: [], evo: swimmerSearchResult };
+    }
+
+    const result = swimmersInNadeBem.map((s) => {
       return {
         ...s,
+        Teacher: s.Teacher,
         isFromSelection: s.periodTeacherSelections.some(
           (selection) =>
             selection.periodId === periodId &&
@@ -118,14 +147,21 @@ export class SwimmersService {
         ),
       };
     });
+    return { nadeBem: result, evo: [] };
+  }
 
-    // TODO: Implementar a busca de alunos no evo
-    // if (swimmersInNadeBem.length > 0) {
-    //   return swimmersInNadeBem;
-    // }
-    // const swimmerSearchResult =
-    //   await this.evoIntegrationService.searchSwimmers(search);
-    // return swimmerSearchResult.slice(0, 10);
+  async toSwimmerAndTeacherAndIsFromSelection(
+    swimmersInEvo: SwimmerEvo[],
+  ): Promise<SwimmerAndTeacherAndIsFromSelection[]> {
+    return swimmersInEvo.map((s) => {
+      return {
+        name: s.firstName + ' ' + s.lastName,
+        photoUrl: s.photoUrl,
+
+        memberNumber: s.idMember,
+        isFromSelection: false,
+      };
+    });
   }
 
   async listAllPaginated({
@@ -216,6 +252,11 @@ export type QuerySwimmersParamsDTO = {
   teacherAuthId: string;
 };
 
-export type SwimmerAndIsFromSelection = Swimmer & {
+export type SwimmerAndTeacherAndIsFromSelection = {
+  id?: string;
+  name: string;
+  photoUrl: string;
+  memberNumber: number;
+  teacher?: Teacher;
   isFromSelection: boolean;
 };

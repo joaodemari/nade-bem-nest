@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { LevelsRepository } from '../../src/domain/repositories/levels-repository';
 import { Step, Area, Level } from '@prisma/client';
+import { levelsDummyDB } from './dummyDB';
 
 @Injectable()
 export class InMemoryLevelsRepository implements LevelsRepository {
   constructor() {}
+
+  levels: Level[] = levelsDummyDB;
+
   findLevelById(
     levelId: string,
   ): Promise<Level & { areas: (Area & { steps: Step[] })[] }> {

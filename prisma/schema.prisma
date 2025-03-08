@@ -124,9 +124,9 @@ model Swimmer {
   lastAccess DateTime?
 
   Report       Report[] @relation(name: "SwimmerReports")
-  lastReport   DateTime?
-  lastReportId String?   @db.ObjectId @unique
-  lastReportAccess Report? @relation(fields: [lastReportId], references: [id], name: "SwimmerLastReport") 
+  // lastReport   DateTime?
+  // lastReportId String?   @db.ObjectId @unique
+  // lastReportAccess Report? @relation(fields: [lastReportId], references: [id], name: "SwimmerLastReport") 
 
   Teacher       Teacher? @relation(fields: [teacherId], references: [id])
   teacherId     String?    @db.ObjectId  @unique
@@ -189,7 +189,7 @@ model Report {
   levelId        String           @db.ObjectId
   ReportAndSteps ReportAndSteps[]
 
-  SwimmerLastReport Swimmer? @relation(name: "SwimmerLastReport")
+  // SwimmerLastReport Swimmer? @relation(name: "SwimmerLastReport")
 
   swimmer   Swimmer? @relation(fields: [idSwimmer], references: [id], name: "SwimmerReports", onDelete: NoAction, onUpdate: NoAction)
   idSwimmer String?  @db.ObjectId

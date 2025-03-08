@@ -11,10 +11,13 @@ import {
 } from '@prisma/client';
 import { Injectable } from '@nestjs/common';
 import { ReportsRepository } from '../../src/domain/repositories/reports-repository';
+import { reportsDummyDB } from './dummyDB';
 
 @Injectable()
 export class InMemoryReportsRepository implements ReportsRepository {
   constructor() {}
+
+  reports: Report[] = reportsDummyDB;
   create(data: Prisma.ReportCreateInput): Promise<Report> {
     throw new Error('Method not implemented.');
   }

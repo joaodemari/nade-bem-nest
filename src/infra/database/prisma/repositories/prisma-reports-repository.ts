@@ -157,6 +157,8 @@ export class PrismaReportsRepository implements ReportsRepository {
   }
 
   async deleteReportById(reportId: string): Promise<void> {
+    throw new Error('Method not implemented.');
+
     const swimmer: Swimmer = await this.prisma.report
       .findFirst({
         where: {
@@ -182,27 +184,27 @@ export class PrismaReportsRepository implements ReportsRepository {
       },
     });
 
-    if (swimmer.lastReportId === reportId) {
-      const swimmerId = swimmer.id;
+    // if (swimmer.lastReportId === reportId) {
+    //   const swimmerId = swimmer.id;
 
-      const lastReportCreated: Report | null = await this.prisma.report
-        .findFirst({
-          where: {
-            idSwimmer: swimmerId,
-          },
-          orderBy: { createdAt: 'desc' },
-        })
-        .then((report) => (report ? report : null));
+    //   const lastReportCreated: Report | null = await this.prisma.report
+    //     .findFirst({
+    //       where: {
+    //         idSwimmer: swimmerId,
+    //       },
+    //       orderBy: { createdAt: 'desc' },
+    //     })
+    //     .then((report) => (report ? report : null));
 
-      await this.prisma.swimmer.update({
-        where: {
-          id: swimmerId,
-        },
-        data: {
-          lastReportId: lastReportCreated ? lastReportCreated.id : null,
-        },
-      });
-    }
+    //   await this.prisma.swimmer.update({
+    //     where: {
+    //       id: swimmerId,
+    //     },
+    //     data: {
+    //       lastReportId: lastReportCreated ? lastReportCreated.id : null,
+    //     },
+    //   });
+    // }
   }
 
   async findManyByTeacher({
@@ -453,10 +455,18 @@ export class PrismaReportsRepository implements ReportsRepository {
               areas: { include: { steps: { orderBy: { points: 'asc' } } } },
             },
           },
-          teacher: true,
           ReportAndSteps: { include: { step: { include: { Area: true } } } },
-          swimmer: true,
-          Period: true,
+          swimmerTeacherPeriodSelection: {
+            include: {
+              swimmer: true,
+              teacherPeriodGroupSelection: {
+                include: {
+                  teacher: true,
+                  period: true,
+                },
+              },
+            },
+          },
         },
       });
 
@@ -479,10 +489,14 @@ export class PrismaReportsRepository implements ReportsRepository {
           } & Level)
         | null = {
         ...reportLevel,
-        period: report.Period,
+        period:
+          report.swimmerTeacherPeriodSelection.teacherPeriodGroupSelection
+            .period,
         observation: report.observation,
-        swimmer: report.swimmer,
-        teacher: report.teacher,
+        swimmer: report.swimmerTeacherPeriodSelection.swimmer,
+        teacher:
+          report.swimmerTeacherPeriodSelection.teacherPeriodGroupSelection
+            .teacher,
         areas: reportLevel.areas.map((area) => {
           console.log('area', area);
 
@@ -542,13 +556,22 @@ export class PrismaReportsRepository implements ReportsRepository {
           level: {
             include: {
               areas: {
-                include: { steps: { include: { ReportAndSteps: true } } },
+                include: {
+                  steps: {
+                    include: { ReportAndSteps: true },
+                    orderBy: {
+                      points: 'asc',
+                    },
+                  },
+                },
               },
             },
           },
           Period: true,
         },
       });
+
+      if (!report) return null;
 
       const reportLevelWithSelectedSteps = {
         level: report.level,

@@ -4,7 +4,7 @@ import { swimmerAndReport } from '../services/swimmers.service';
 import { ListAllSwimmersProps } from '../../infra/http/dtos/ListSwimmers.dto';
 import { Swimmer } from '@prisma/client';
 import { string } from 'zod';
-import { UpdateLevelAndReportProps } from '../services/reports/templates/postReport.service';
+import { UpdateLevelAndReportProps } from '../services/reports/templates/create-report.service';
 import { SwimmerAndSelctionsAndGroupSelectionsAndTeacher } from '../../infra/database/prisma/repositories/prisma-swimmers-repository';
 
 export abstract class SwimmersRepository {
@@ -36,6 +36,10 @@ export abstract class SwimmersRepository {
     idMember: number,
   ): Promise<SwimmerInfoResponse | null>;
 
+  abstract findSwimmerAndReportsById(
+    swimmerId: string,
+  ): Promise<SwimmerInfoResponse | null>;
+
   abstract findManyPaginated({
     branchId,
     page,
@@ -58,6 +62,7 @@ export abstract class SwimmersRepository {
   abstract createSwimmerFromEvo(
     swimmer: SwimmerEvo,
     branchId: string,
+    teacherAuthId: string,
   ): Promise<Swimmer>;
 
   abstract updateLevelOfSwimmers(): Promise<void>;

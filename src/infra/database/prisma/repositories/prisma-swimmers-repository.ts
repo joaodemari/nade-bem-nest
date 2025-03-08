@@ -14,10 +14,11 @@ import {
 import capitalizeName from '../../../../core/utils/capitalizeName';
 import { ListAllSwimmersProps } from '../../../http/dtos/ListSwimmers.dto';
 import { swimmerAndReport } from '../../../../domain/services/swimmers.service';
-import { UpdateLevelAndReportProps } from '../../../../domain/services/reports/templates/postReport.service';
+import { UpdateLevelAndReportProps } from '../../../../domain/services/reports/templates/create-report.service';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { PRISMA_INJECTION_TOKEN } from '../../PrismaDatabase.module';
 import { ExtendedPrismaClient } from '../prisma.extension';
+import generatePhotoUrl from '../../../../core/utils/generatePhotoUrl';
 
 export type SwimmerAndSelctionsAndGroupSelectionsAndTeacher = Swimmer & {
   periodTeacherSelections: (SwimmerPeriodTeacherSelection & {
@@ -25,6 +26,7 @@ export type SwimmerAndSelctionsAndGroupSelectionsAndTeacher = Swimmer & {
       teacher: Teacher;
     };
   })[];
+  Teacher: Teacher;
 };
 
 @Injectable()
@@ -39,22 +41,25 @@ export class PrismaSwimmersRepository implements SwimmersRepository {
   }
 
   async updateLevelAndReport({
-    memberNumber,
+    swimmerSelectionId,
     levelId,
-    reportId,
   }: UpdateLevelAndReportProps) {
+    const swimmer = await this.prisma.swimmer.findFirst({
+      where: {
+        periodTeacherSelections: {
+          some: {
+            id: swimmerSelectionId,
+          },
+        },
+      },
+    });
+
     await this.prisma.swimmer.update({
-      where: { memberNumber: memberNumber },
+      where: { id: swimmer.id },
       data: {
         actualLevel: {
           connect: {
             id: levelId,
-          },
-        },
-        lastReport: new Date(),
-        lastReportAccess: {
-          connect: {
-            id: reportId,
           },
         },
       },
@@ -74,7 +79,7 @@ export class PrismaSwimmersRepository implements SwimmersRepository {
     branchId: string;
     search: string;
   }): Promise<SwimmerAndSelctionsAndGroupSelectionsAndTeacher[]> {
-    return await this.prisma.swimmer.findMany({
+    const swimmers = await this.prisma.swimmer.findMany({
       where: {
         branchId,
         OR: [
@@ -101,19 +106,25 @@ export class PrismaSwimmersRepository implements SwimmersRepository {
             },
           },
         },
+        Teacher: true,
       },
       take: 10,
     });
+
+    return swimmers.map((s) => {
+      return {
+        ...s,
+        photoUrl: s.photoUrl ?? generatePhotoUrl(s.name),
+        name: capitalizeName(s.name),
+      };
+    });
   }
+
   async updateLevelOfSwimmers(): Promise<void> {
+    throw new Error('Method not implemented.');
     const swimmers = await this.prisma.swimmer.findMany({
       include: {
         actualLevel: true,
-        lastReportAccess: {
-          include: {
-            level: true,
-          },
-        },
       },
     });
 
@@ -139,16 +150,16 @@ export class PrismaSwimmersRepository implements SwimmersRepository {
     swimmers.forEach((swimmer, i) => {
       let levelToBeUpdated = 1;
 
-      if (swimmer.lastReportAccess === null) {
-        levelToBeUpdated = 1;
-      } else if (
-        swimmer.lastReportAccess.approved === true &&
-        swimmer.actualLevel.levelNumber < 5
-      ) {
-        levelToBeUpdated = swimmer.lastReportAccess.level.levelNumber + 1;
-      } else {
-        levelToBeUpdated = swimmer.lastReportAccess.level.levelNumber;
-      }
+      // if (swimmer.lastReportAccess === null) {
+      //   levelToBeUpdated = 1;
+      // } else if (
+      //   swimmer.lastReportAccess.approved === true &&
+      //   swimmer.actualLevel.levelNumber < 5
+      // ) {
+      //   levelToBeUpdated = swimmer.lastReportAccess.level.levelNumber + 1;
+      // } else {
+      //   levelToBeUpdated = swimmer.lastReportAccess.level.levelNumber;
+      // }
 
       console.log(i + 'swimmer of' + numberOfSwimmers);
 
@@ -183,10 +194,46 @@ export class PrismaSwimmersRepository implements SwimmersRepository {
   async createSwimmerFromEvo(
     swimmer: SwimmerEvo,
     branchId: string,
+    teacherAuthId: string,
   ): Promise<Swimmer> {
-    return await this.prisma.swimmer.create({
-      data: SwimmerEvoMapper.toPersistence(swimmer, branchId),
+    let teacherId = await this.prisma.branchTeacher
+      .findUnique({
+        where: {
+          branchId_teacherNumber: {
+            branchId,
+            teacherNumber: swimmer.idEmployeeInstructor,
+          },
+        },
+        select: {
+          teacherId: true,
+        },
+      })
+      .then((result) => result?.teacherId);
+
+    if (!teacherId) {
+      const teacher = await this.prisma.teacher.findFirst({
+        where: {
+          authId: teacherAuthId,
+        },
+      });
+
+      if (!teacher) {
+        throw new Error('Teacher not found');
+      }
+
+      teacherId = teacher.id;
+    }
+
+    const swimmerInPrisma = await this.prisma.swimmer.create({
+      data: SwimmerEvoMapper.toPersistence(swimmer, branchId, teacherId),
     });
+
+    return {
+      ...swimmerInPrisma,
+      photoUrl:
+        swimmerInPrisma.photoUrl ?? generatePhotoUrl(swimmerInPrisma.name),
+      name: capitalizeName(swimmerInPrisma.name),
+    };
   }
 
   async upsertManyFromEvo(
@@ -195,11 +242,15 @@ export class PrismaSwimmersRepository implements SwimmersRepository {
   ): Promise<void> {
     if (swimmers.length === 0) return;
 
+    //TODO: Found bug of teacher that is not in the branch
+
     const teacherNumbersMap = await this.buildTeacherNumbersMap(branchId);
 
     await Promise.all(
       swimmers.map(async (swimmer) => {
         const teacherId = teacherNumbersMap.get(swimmer.idEmployeeInstructor);
+
+        console.log('teacherId', teacherId);
 
         await this.prisma.swimmer
           .upsert({
@@ -225,16 +276,19 @@ export class PrismaSwimmersRepository implements SwimmersRepository {
   }
 
   buildTeacherNumbersMap = async (branchId: string) => {
-    const teachers = await this.prisma.branchTeacher.findMany({
+    const branchTeachers = await this.prisma.branchTeacher.findMany({
       where: {
         branchId,
+      },
+      include: {
+        teacher: true,
       },
     });
 
     const teacherNumbersMap = new Map<number, string>();
 
-    teachers.forEach((teacher) => {
-      teacherNumbersMap.set(teacher.teacherNumber, teacher.id);
+    branchTeachers.forEach((bt) => {
+      teacherNumbersMap.set(bt.teacherNumber, bt.teacher.id);
     });
 
     return teacherNumbersMap;
@@ -280,11 +334,7 @@ export class PrismaSwimmersRepository implements SwimmersRepository {
       },
     });
 
-    const swimmersCount = swimmers.filter((s) => {
-      return !s.lastReport || new Date(s.lastReport) < periodStartDate;
-    }).length;
-
-    return swimmersCount;
+    throw new Error('Method not implemented.');
   }
 
   findInfoToUpdateSwimmerTeacher = async (swimmerId: string) => {
@@ -315,12 +365,9 @@ export class PrismaSwimmersRepository implements SwimmersRepository {
         },
         branchId,
       },
-      orderBy: {
-        lastReport: 'asc',
-      },
+
       include: {
         Report: { orderBy: { createdAt: 'asc' } },
-        lastReportAccess: true,
       },
     });
 
@@ -342,7 +389,8 @@ export class PrismaSwimmersRepository implements SwimmersRepository {
     return swimmers.map((swimmer) => {
       return {
         ...swimmer,
-        lastReportPeriodId: swimmer.lastReportAccess?.periodId,
+        photoUrl: swimmer.photoUrl ?? generatePhotoUrl(swimmer.name),
+        name: capitalizeName(swimmer.name),
       };
     });
   }
@@ -387,12 +435,8 @@ export class PrismaSwimmersRepository implements SwimmersRepository {
       where,
       skip: (page - 1) * perPage,
       take: perPage,
-      orderBy: {
-        lastReport: 'asc',
-      },
       include: {
         Report: { orderBy: { createdAt: 'asc' } },
-        lastReportAccess: true,
       },
     });
 
@@ -419,7 +463,8 @@ export class PrismaSwimmersRepository implements SwimmersRepository {
       swimmers: swimmers.map((swimmer) => {
         return {
           ...swimmer,
-          lastReportPeriodId: swimmer.lastReportAccess?.periodId,
+          photoUrl: swimmer.photoUrl ?? generatePhotoUrl(swimmer.name),
+          name: capitalizeName(swimmer.name),
         };
       }),
       totalSwimmers: swimmersCount,
@@ -508,9 +553,10 @@ export class PrismaSwimmersRepository implements SwimmersRepository {
 
     return {
       swimmer: {
-        name: swimmer.name,
-        actualLevel: swimmer.actualLevel.name,
-        photoUrl: swimmer.photoUrl,
+        name: capitalizeName(swimmer.name),
+        actualLevelName: swimmer.actualLevel.name,
+        photoUrl: swimmer.photoUrl ?? generatePhotoUrl(swimmer.name),
+        teacher: swimmer.Teacher,
       },
       reports: swimmer.Report.map((report) => {
         return {
@@ -523,6 +569,67 @@ export class PrismaSwimmersRepository implements SwimmersRepository {
           id: report.id,
         };
       }),
+    };
+  }
+
+  async findSwimmerAndReportsById(swimmerId: string) {
+    const swimmer = await this.prisma.swimmer.findFirst({
+      where: { id: swimmerId },
+      include: {
+        periodTeacherSelections: {
+          orderBy: {
+            teacherPeriodGroupSelection: {
+              period: {
+                startDate: 'desc',
+              },
+            },
+          },
+          include: {
+            Report: {
+              include: {
+                level: true,
+              },
+            },
+            teacherPeriodGroupSelection: {
+              include: {
+                teacher: true,
+                period: true,
+              },
+            },
+          },
+        },
+        actualLevel: true,
+        Teacher: true,
+      },
+    });
+    if (!swimmer) {
+      return null;
+    }
+
+    return {
+      swimmer: {
+        name: capitalizeName(swimmer.name),
+        actualLevelName: swimmer.actualLevel.name,
+        photoUrl: swimmer.photoUrl ?? generatePhotoUrl(swimmer.name),
+        teacher: swimmer.Teacher,
+      },
+      reports: swimmer.periodTeacherSelections
+        .map((selection) => {
+          const report = selection.Report;
+
+          if (!report) {
+            return;
+          }
+          const teacher = selection.teacherPeriodGroupSelection?.teacher;
+          return {
+            periodName: selection.teacherPeriodGroupSelection?.period.name,
+            teacherName: capitalizeName(teacher.name ?? 'Não encontrado'),
+            teacherPhoto: teacher?.photoUrl ?? 'sem url',
+            level: report.level.name,
+            id: report.id,
+          };
+        })
+        .filter((report) => report),
     };
   }
 }
