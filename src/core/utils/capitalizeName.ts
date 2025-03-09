@@ -14,7 +14,7 @@ export default (input?: string, numberOfCharactersMaximum?: number) => {
     while (trimmedNames.length > numberOfCharactersMaximum) {
       const lastSpaceIndex = trimmedNames.lastIndexOf(' ');
       if (lastSpaceIndex === -1) {
-        break; // No more spaces, can't trim further
+        break;
       }
       trimmedNames = trimmedNames.substring(0, lastSpaceIndex);
     }

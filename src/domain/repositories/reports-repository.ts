@@ -3,12 +3,22 @@ import {
   Branch,
   Level,
   Period,
+  Prisma,
+  Report,
   Step,
   Swimmer,
   Teacher,
 } from '@prisma/client';
 
 export abstract class ReportsRepository {
+  abstract create(data: Prisma.ReportCreateInput): Promise<Report>;
+  abstract updateReportById(
+    data: Prisma.ReportCreateInput,
+    id: string,
+  ): Promise<Report>;
+
+  abstract deleteReportStepsByReportId(id: string): Promise<void>;
+
   abstract updateRightLevelsToReport(): Promise<void>;
 
   abstract deleteReportById(reportId: string): Promise<void>;

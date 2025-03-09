@@ -3,7 +3,7 @@ import { TeachersTableResponseDto } from '../../infra/http/dtos/teachers/teacher
 
 export abstract class TeachersRepository {
   abstract findByAuthId(authId: string): Promise<Teacher | null>;
-  abstract generateToken(id: number): Promise<string>;
+  abstract generateToken(teacherAuthId: string): Promise<string>;
   abstract findByEmail(
     teacherEmail: string,
   ): Promise<{ teacher: Teacher; branchApiKey: string } | null>;
@@ -21,7 +21,7 @@ export abstract class TeachersRepository {
     branchId?: string;
   }): Promise<
     {
-      teacherId: number;
+      teacherId: string;
       name: string;
       reports: number;
     }[]

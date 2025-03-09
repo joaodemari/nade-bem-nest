@@ -1,11 +1,21 @@
 import PeriodsRepository from '../../../../domain/repositories/periods-repository';
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { Period, Prisma } from '@prisma/client';
+import { CustomPrismaService } from 'nestjs-prisma';
+import { PRISMA_INJECTION_TOKEN } from '../../PrismaDatabase.module';
+import { ExtendedPrismaClient } from '../prisma.extension';
 
 @Injectable()
 export class PrismaPeriodsRepository implements PeriodsRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly prisma: ExtendedPrismaClient;
+
+  constructor(
+    @Inject(forwardRef(() => PRISMA_INJECTION_TOKEN))
+    prismaService: CustomPrismaService<ExtendedPrismaClient>,
+  ) {
+    this.prisma = prismaService.client;
+  }
 
   async create(period: Prisma.PeriodCreateInput): Promise<void> {
     await this.prisma.period.create({

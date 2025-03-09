@@ -1,5 +1,15 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
+import { CustomPrismaClientFactory } from 'nestjs-prisma';
+import {
+  PageNumberPaginationOptions,
+  pagination,
+} from 'prisma-extension-pagination';
+import { ExtendedPrismaClient } from './prisma.extension';
+
+export type PrismaServiceWithExtensions = ReturnType<
+  PrismaService['withExtensions']
+>;
 
 @Injectable()
 export class PrismaService
@@ -10,6 +20,10 @@ export class PrismaService
     super({
       log: ['warn', 'error'],
     });
+  }
+
+  withExtensions() {
+    return this.$extends(pagination());
   }
 
   onModuleInit() {

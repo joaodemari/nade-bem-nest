@@ -3,6 +3,7 @@ import {
   Branch,
   Level,
   Period,
+  Prisma,
   Report,
   ReportAndSteps,
   Step,
@@ -11,11 +12,43 @@ import {
 } from '@prisma/client';
 import { PrismaService } from '../prisma.service';
 import { ReportsRepository } from '../../../../domain/repositories/reports-repository';
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { CustomPrismaService } from 'nestjs-prisma';
+import { PRISMA_INJECTION_TOKEN } from '../../PrismaDatabase.module';
+import { ExtendedPrismaClient } from '../prisma.extension';
 
 @Injectable()
 export class PrismaReportsRepository implements ReportsRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly prisma: ExtendedPrismaClient;
+
+  constructor(
+    @Inject(forwardRef(() => PRISMA_INJECTION_TOKEN))
+    prismaService: CustomPrismaService<ExtendedPrismaClient>,
+  ) {
+    this.prisma = prismaService.client;
+  }
+
+  async create(data: Prisma.ReportCreateInput) {
+    return await this.prisma.report.create({ data });
+  }
+
+  async updateReportById(
+    data: Prisma.ReportCreateInput,
+    id: string,
+  ): Promise<Report> {
+    await this.deleteReportStepsByReportId(id);
+
+    return await this.prisma.report.update({
+      data,
+      where: { id },
+    });
+  }
+
+  async deleteReportStepsByReportId(id: string): Promise<void> {
+    await this.prisma.reportAndSteps.deleteMany({
+      where: { reportId: id },
+    });
+  }
 
   async findOneById({ reportId }: { reportId: string }): Promise<
     | ({
@@ -124,6 +157,8 @@ export class PrismaReportsRepository implements ReportsRepository {
   }
 
   async deleteReportById(reportId: string): Promise<void> {
+    throw new Error('Method not implemented.');
+
     const swimmer: Swimmer = await this.prisma.report
       .findFirst({
         where: {
@@ -149,27 +184,27 @@ export class PrismaReportsRepository implements ReportsRepository {
       },
     });
 
-    if (swimmer.lastReportId === reportId) {
-      const swimmerId = swimmer.id;
+    // if (swimmer.lastReportId === reportId) {
+    //   const swimmerId = swimmer.id;
 
-      const lastReportCreated: Report | null = await this.prisma.report
-        .findFirst({
-          where: {
-            idSwimmer: swimmerId,
-          },
-          orderBy: { createdAt: 'desc' },
-        })
-        .then((report) => (report ? report : null));
+    //   const lastReportCreated: Report | null = await this.prisma.report
+    //     .findFirst({
+    //       where: {
+    //         idSwimmer: swimmerId,
+    //       },
+    //       orderBy: { createdAt: 'desc' },
+    //     })
+    //     .then((report) => (report ? report : null));
 
-      await this.prisma.swimmer.update({
-        where: {
-          id: swimmerId,
-        },
-        data: {
-          lastReportId: lastReportCreated ? lastReportCreated.id : null,
-        },
-      });
-    }
+    //   await this.prisma.swimmer.update({
+    //     where: {
+    //       id: swimmerId,
+    //     },
+    //     data: {
+    //       lastReportId: lastReportCreated ? lastReportCreated.id : null,
+    //     },
+    //   });
+    // }
   }
 
   async findManyByTeacher({
@@ -420,10 +455,18 @@ export class PrismaReportsRepository implements ReportsRepository {
               areas: { include: { steps: { orderBy: { points: 'asc' } } } },
             },
           },
-          teacher: true,
           ReportAndSteps: { include: { step: { include: { Area: true } } } },
-          swimmer: true,
-          Period: true,
+          swimmerTeacherPeriodSelection: {
+            include: {
+              swimmer: true,
+              teacherPeriodGroupSelection: {
+                include: {
+                  teacher: true,
+                  period: true,
+                },
+              },
+            },
+          },
         },
       });
 
@@ -446,10 +489,14 @@ export class PrismaReportsRepository implements ReportsRepository {
           } & Level)
         | null = {
         ...reportLevel,
-        period: report.Period,
+        period:
+          report.swimmerTeacherPeriodSelection.teacherPeriodGroupSelection
+            .period,
         observation: report.observation,
-        swimmer: report.swimmer,
-        teacher: report.teacher,
+        swimmer: report.swimmerTeacherPeriodSelection.swimmer,
+        teacher:
+          report.swimmerTeacherPeriodSelection.teacherPeriodGroupSelection
+            .teacher,
         areas: reportLevel.areas.map((area) => {
           console.log('area', area);
 
@@ -509,13 +556,22 @@ export class PrismaReportsRepository implements ReportsRepository {
           level: {
             include: {
               areas: {
-                include: { steps: { include: { ReportAndSteps: true } } },
+                include: {
+                  steps: {
+                    include: { ReportAndSteps: true },
+                    orderBy: {
+                      points: 'asc',
+                    },
+                  },
+                },
               },
             },
           },
           Period: true,
         },
       });
+
+      if (!report) return null;
 
       const reportLevelWithSelectedSteps = {
         level: report.level,

@@ -13,9 +13,7 @@ export class SwimmerPresenter {
           photoUrl: swimmer.photoUrl,
           lastAccess: swimmer.lastAccess,
           actualLevel: swimmer.actualLevelName,
-          teacherNumber: swimmer.teacherNumber,
-          lastReport: swimmer.lastReport,
-          lastReportId: swimmer.lastReportId,
+          teacherId: swimmer.id,
           isActive: swimmer.isActive,
         };
       });
@@ -27,9 +25,7 @@ export class SwimmerPresenter {
       photoUrl: swimmer.photoUrl,
       lastAccess: swimmer.lastAccess,
       actualLevel: swimmer.actualLevelName,
-      teacherNumber: swimmer.teacherNumber,
-      lastReport: swimmer.lastReport,
-      lastReportId: swimmer.lastReportId,
+      teacherId: swimmer.id,
       isActive: swimmer.isActive,
     };
   }
@@ -47,9 +43,7 @@ export class SwimmerPresenter {
           photoUrl: swimmer.photoUrl,
           lastAccess: swimmer.lastAccess,
           actualLevel: swimmer.actualLevelName,
-          teacherNumber: swimmer.teacherNumber,
-          lastReport: swimmer.lastReport,
-          lastReportId: swimmer.lastReportId,
+          teacherId: swimmer.id,
           isLastReportFromCurrentPeriod: swimmer.isFromThisPeriod,
           isActive: swimmer.isActive,
         };
@@ -62,9 +56,7 @@ export class SwimmerPresenter {
       photoUrl: swimmer.photoUrl,
       lastAccess: swimmer.lastAccess,
       actualLevel: swimmer.actualLevelName,
-      teacherNumber: swimmer.teacherNumber,
-      lastReport: swimmer.lastReport,
-      lastReportId: swimmer.lastReportId,
+      teacherId: swimmer.id,
       isActive: swimmer.isActive,
       isLastReportFromCurrentPeriod: swimmer.isFromThisPeriod,
     };
