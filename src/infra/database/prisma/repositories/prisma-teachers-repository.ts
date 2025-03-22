@@ -40,7 +40,7 @@ export class PrismaTeachersRepository implements TeachersRepository {
   }: {
     periodId: string;
     branchId?: string;
-  }): Promise<{ teacherId: number; name: string; reports: number }[]> {
+  }): Promise<{ teacherId: string; name: string; reports: number }[]> {
     const where: Prisma.TeacherWhereInput = branchId
       ? { branchTeachers: { some: { branchId } } }
       : {};
@@ -61,7 +61,7 @@ export class PrismaTeachersRepository implements TeachersRepository {
     });
 
     const teachersMapped = teachers.map((teacher) => ({
-      teacherId: teacher.teacherNumber,
+      teacherId: teacher.id,
       name: teacher.name,
       reports: teacher.swimmers.reduce(
         (acc, swimmer) => acc + swimmer.Report.length,
@@ -141,11 +141,11 @@ export class PrismaTeachersRepository implements TeachersRepository {
     });
   }
 
-  async generateToken(id: number): Promise<string> {
+  async generateToken(teacherAuthId: string): Promise<string> {
     const token = randomUUID();
     await this.prisma.teacher.update({
       where: {
-        teacherNumber: id,
+        authId: teacherAuthId,
       },
       data: {
         resetToken: token,
@@ -183,7 +183,6 @@ export class PrismaTeachersRepository implements TeachersRepository {
       content: teachers.map((teacher) => ({
         id: teacher.id,
         teacherAuthId: teacher.authId,
-        teacherNumber: teacher.teacherNumber,
         name: teacher.name,
         email: teacher.email,
         activeSwimmers: teacher.swimmers.filter((s) => s.isActive).length,

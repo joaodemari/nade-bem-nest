@@ -10,7 +10,8 @@ export class GetLevelTempleteService {
     if (!levelId) {
       throw new Error('Level not found');
     }
-    const level = await this.levelRepository.findLevelAndAreasAndSteps(levelId);
+    const level =
+      await this.levelRepository.findLevelAndAreasAndStepsByLevelId(levelId);
 
     const response = {
       ...level,

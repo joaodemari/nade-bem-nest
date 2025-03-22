@@ -130,7 +130,7 @@ export type RemoveSwimmerTeacherSelectionProps = {
 
 export type GetSwimmersFromPeriodAndTeacherProps = {
   periodId: string;
-  teacherAuthId?: string;
+  teacherAuthId: string;
 };
 
 export type ResetSwimmersFromGroupSelectionProps = {

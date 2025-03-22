@@ -17,7 +17,7 @@ export class TeacherService {
   }: {
     periodId: string;
     branchId?: string;
-  }): Promise<{ teacherId: number; name: string; reports: number }[]> {
+  }): Promise<{ teacherId: string; name: string; reports: number }[]> {
     return await this.teachersRepository.countReports({ periodId, branchId });
   }
 

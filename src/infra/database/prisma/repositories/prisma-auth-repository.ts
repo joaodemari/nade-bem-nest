@@ -1,15 +1,23 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { AuthRepository } from '../../../../domain/repositories/auth-repository';
 import { Auth } from '@prisma/client';
+import { CustomPrismaService } from 'nestjs-prisma';
+import { PRISMA_INJECTION_TOKEN } from '../../PrismaDatabase.module';
+import { ExtendedPrismaClient } from '../prisma.extension';
 
 @Injectable()
 export class PrismaAuthRepository implements AuthRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly prisma: ExtendedPrismaClient;
 
-  async findByEmail(
-    email: string,
-  ): Promise<{ auth: Auth; memberNumber: number | null; branchId: string }> {
+  constructor(
+    @Inject(forwardRef(() => PRISMA_INJECTION_TOKEN))
+    prismaService: CustomPrismaService<ExtendedPrismaClient>,
+  ) {
+    this.prisma = prismaService.client;
+  }
+
+  async findByEmail(email: string): Promise<{ auth: Auth; branchId: string }> {
     const auth = await this.prisma.auth.findFirst({
       where: {
         email,
@@ -17,7 +25,6 @@ export class PrismaAuthRepository implements AuthRepository {
       include: {
         teacher: {
           select: {
-            teacherNumber: true,
             branchTeachers: {
               include: { branch: { select: { id: true } } },
             },
@@ -53,7 +60,6 @@ export class PrismaAuthRepository implements AuthRepository {
 
     return {
       auth,
-      memberNumber: auth.teacher?.teacherNumber ?? null,
       branchId,
     };
   }

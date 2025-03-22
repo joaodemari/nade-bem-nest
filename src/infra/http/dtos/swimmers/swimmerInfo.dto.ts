@@ -1,8 +1,11 @@
+import { Teacher } from '@prisma/client';
+
 export type SwimmerInfoResponse = {
   swimmer: {
     name: string;
-    actualLevel: string;
+    actualLevelName: string;
     photoUrl: string;
+    teacher: Teacher;
   };
   reports: {
     periodName: string;

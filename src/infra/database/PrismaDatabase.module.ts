@@ -1,5 +1,8 @@
-import { Module } from '@nestjs/common';
-import { PrismaService } from './prisma/prisma.service';
+import { forwardRef, Module } from '@nestjs/common';
+import {
+  PrismaService,
+  PrismaServiceWithExtensions,
+} from './prisma/prisma.service';
 import { SwimmersRepository } from '../../domain/repositories/swimmers-repository';
 import { PrismaSwimmersRepository } from './prisma/repositories/prisma-swimmers-repository';
 import { TeachersRepository } from '../../domain/repositories/teachers-repository';
@@ -17,11 +20,30 @@ import { AuthRepository } from '../../domain/repositories/auth-repository';
 import { PrismaAuthRepository } from './prisma/repositories/prisma-auth-repository';
 import { PrismaResponsiblesRepository } from './prisma/repositories/prisma-responsibles-repository';
 import { ResponsibleRepository } from '../../domain/repositories/responsibles-repository';
+import { SelectionsRepository } from '../../domain/repositories/selections-repository';
+import { PrismaSelectionsRepository } from './prisma/repositories/prisma-selections-repository';
+import { CustomPrismaModule } from 'nestjs-prisma';
+import { extendedPrismaClient } from './prisma/prisma.extension';
+import { SessionsRepository } from '../../domain/repositories/sessions-repository';
+import { PrismaSessionsRepository } from './prisma/repositories/prisma-sessions-repository';
+
+export const PRISMA_INJECTION_TOKEN = 'PrismaService';
 
 @Module({
+  imports: [
+    CustomPrismaModule.forRootAsync({
+      name: PRISMA_INJECTION_TOKEN,
+      useFactory: () => {
+        return extendedPrismaClient;
+      },
+    }),
+  ],
   providers: [
-    PrismaService,
     EnvService,
+    {
+      provide: SessionsRepository,
+      useClass: PrismaSessionsRepository,
+    },
     {
       provide: SwimmersRepository,
       useClass: PrismaSwimmersRepository,
@@ -54,9 +76,12 @@ import { ResponsibleRepository } from '../../domain/repositories/responsibles-re
       provide: ResponsibleRepository,
       useClass: PrismaResponsiblesRepository,
     },
+    {
+      provide: SelectionsRepository,
+      useClass: PrismaSelectionsRepository,
+    },
   ],
   exports: [
-    PrismaService,
     SwimmersRepository,
     TeachersRepository,
     PeriodsRepository,
@@ -65,6 +90,8 @@ import { ResponsibleRepository } from '../../domain/repositories/responsibles-re
     BranchRepository,
     AuthRepository,
     ResponsibleRepository,
+    SelectionsRepository,
+    SessionsRepository,
   ],
 })
 export class PrismaDatabaseModule {}

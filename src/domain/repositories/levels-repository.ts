@@ -1,17 +1,12 @@
-import { Step, Area } from '@prisma/client';
+import { Step, Area, Level } from '@prisma/client';
 
 export abstract class LevelsRepository {
-  abstract findLevelAndAreasAndSteps(levelId: string): Promise<
+  abstract findLevelAndAreasAndStepsByLevelId(levelId: string): Promise<
     {
       areas: ({
         steps: Step[];
       } & Area)[];
-    } & {
-      id: string;
-      name: string;
-      levelNumber: number;
-      branchId: string;
-    }
+    } & Level
   >;
 
   abstract findFirstLevel(): Promise<
@@ -19,24 +14,14 @@ export abstract class LevelsRepository {
       areas: ({
         steps: Step[];
       } & Area)[];
-    } & {
-      id: string;
-      name: string;
-      levelNumber: number;
-      branchId: string;
-    }
+    } & Level
   >;
 
-  abstract findByLevelNumber(levelNumber: number): Promise<
+  abstract findLevelAndAreasAndStepsByLevelNumber(levelNumber: number): Promise<
     {
       areas: ({
         steps: Step[];
       } & Area)[];
-    } & {
-      id: string;
-      name: string;
-      levelNumber: number;
-      branchId: string;
-    }
+    } & Level
   >;
 }

@@ -16,11 +16,11 @@ export class GetTemplateReportBySwimmerController {
     private readonly getTemplateReportBySwimmer: GetRepTemplBySwimmerService,
   ) {}
 
-  @Get(':id')
-  async handle(@Param('id') id: string) {
+  @Get(':selectionId')
+  async handle(@Param('selectionId') selectionId: string) {
     try {
-      const reportId = id == 'no-report' ? null : id;
-      const report = await this.getTemplateReportBySwimmer.execute(reportId);
+      const report =
+        await this.getTemplateReportBySwimmer.getBySelectionId(selectionId);
 
       return report;
     } catch (error) {

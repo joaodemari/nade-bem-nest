@@ -69,11 +69,11 @@ export class SelectionController {
     }
   }
 
-  @Roles(Role.Teacher, Role.Admin)
-  @Get('period/:periodId/teacher/todos-os-professores')
+  @Roles(Role.Teacher)
+  @Get('period/:periodId/teacher/:teacherAuthId')
   async getSelectionsFromPeriodAndTeacher(
     @Param('periodId') periodId: string,
-    @Param('teacherAuthId') teacherAuthId?: string,
+    @Param('teacherAuthId') teacherAuthId: string,
   ): Promise<FindSelectionGroupWithSwimmersResponseDTO> {
     try {
       return await this.selectionService.getSelectionWithSwimmersFromPeriodAndTeacher(
