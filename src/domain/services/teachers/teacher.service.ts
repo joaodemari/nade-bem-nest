@@ -1,10 +1,15 @@
 import { Injectable } from '@nestjs/common';
+import { Teacher } from '@prisma/client';
 import { TeachersTableResponseDto } from '../../../infra/http/dtos/teachers/teacherForAdmin/TeachersTableResponse.dto';
 import { TeachersRepository } from '../../repositories/teachers-repository';
 
 @Injectable()
 export class TeacherService {
   constructor(private teachersRepository: TeachersRepository) {}
+
+  async getTeachersByBranchId(branchId: string): Promise<Teacher[]> {
+    return await this.teachersRepository.getTeachersByBranchId(branchId);
+  }
 
   async countReports({
     periodId,

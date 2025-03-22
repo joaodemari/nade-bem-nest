@@ -1,13 +1,34 @@
-import { TeachersRepository } from '../../../../domain/repositories/teachers-repository';
-import { randomUUID } from 'crypto';
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma.service';
-import { TeachersTableResponseDto } from '../../../http/dtos/teachers/teacherForAdmin/TeachersTableResponse.dto';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { Prisma, Teacher } from '@prisma/client';
+import { randomUUID } from 'crypto';
+import { CustomPrismaService } from 'nestjs-prisma';
+import { TeachersRepository } from '../../../../domain/repositories/teachers-repository';
+import { TeachersTableResponseDto } from '../../../http/dtos/teachers/teacherForAdmin/TeachersTableResponse.dto';
+import { PRISMA_INJECTION_TOKEN } from '../../PrismaDatabase.module';
+import { ExtendedPrismaClient } from '../prisma.extension';
 
 @Injectable()
 export class PrismaTeachersRepository implements TeachersRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly prisma: ExtendedPrismaClient;
+
+  constructor(
+    @Inject(forwardRef(() => PRISMA_INJECTION_TOKEN))
+    prismaService: CustomPrismaService<ExtendedPrismaClient>,
+  ) {
+    this.prisma = prismaService.client;
+  }
+  getTeachersByBranchId(branchId: string): Promise<Teacher[]> {
+    return this.prisma.teacher.findMany({
+      where: {
+        active: true,
+        branchTeachers: {
+          some: {
+            branchId,
+          },
+        },
+      },
+    });
+  }
 
   findByAuthId(authId: string): Promise<Teacher | null> {
     throw new Error('Method not implemented.');
